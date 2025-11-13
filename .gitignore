@@ -1,0 +1,79 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+###############################
+# Spring Boot / Maven
+###############################
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+###############################
+# Properties/YAML with secrets
+###############################
+src/main/resources/application.properties
+src/main/resources/application.yml
+src/main/resources/application-dev.properties
+src/main/resources/application-prod.properties
+src/main/resources/*.secret.properties
+
+###############################
+# IDE files
+###############################
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+###############################
+# OS files
+###############################
+.DS_Store
+Thumbs.db
+
+###############################
+# Logs and temp files
+###############################
+*.tmp
+*.temp
+*.swp
+*.swo
+
+###############################
+# Java garbage
+###############################
+hs_err_pid*
