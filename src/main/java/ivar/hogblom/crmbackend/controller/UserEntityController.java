@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/user")
 @Validated
-@SecurityRequirement(name = "Bearer Authentication")  // Add this annotation
 @Tag(name = "User API", description = "API endpoints for managing User")
 public class UserEntityController {
 

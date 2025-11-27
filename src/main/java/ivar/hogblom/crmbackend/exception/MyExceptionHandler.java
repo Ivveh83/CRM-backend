@@ -76,6 +76,12 @@ public class MyExceptionHandler {
         return createErrorResponse(HttpStatus.UNAUTHORIZED, "Authentication failed: " + ex.getMessage());
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        System.out.println("HandleIllegalArgumentException: " + ex.getMessage());
+        return createErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
 
     private ResponseEntity<ErrorResponse> createErrorResponse(HttpStatus status, String... errors) {
         ErrorResponse errorResponse = new ErrorResponse(status.value(), errors);

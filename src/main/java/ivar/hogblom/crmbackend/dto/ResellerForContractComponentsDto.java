@@ -1,0 +1,13 @@
+package ivar.hogblom.crmbackend.dto;
+
+import lombok.Builder;
+
+import java.util.UUID;
+
+@Builder
+public record ResellerForContractComponentsDto(
+        UUID id,
+        String name,
+        boolean active
+) {
+}

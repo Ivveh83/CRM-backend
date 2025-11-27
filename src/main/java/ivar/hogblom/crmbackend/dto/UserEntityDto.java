@@ -5,9 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
+import java.util.UUID;
+
 @Builder
 public record UserEntityDto(
-        Long id,
+        UUID id,
 
         @NotBlank(message = "Username is required")
         @Size(min = 4, max = 100, message = "Name must be between 4 and 100 characters")
