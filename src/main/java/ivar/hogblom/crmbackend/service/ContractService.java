@@ -1,5 +1,6 @@
 package ivar.hogblom.crmbackend.service;
 
+import ivar.hogblom.crmbackend.dto.ContractActiveUpdateDto;
 import ivar.hogblom.crmbackend.dto.ContractResponseDto;
 import ivar.hogblom.crmbackend.dto.ContractRequestDto;
 
@@ -12,6 +13,6 @@ public interface ContractService {
     ContractResponseDto findById(UUID id);
     void createContract(ContractRequestDto request);
     void updateContract(UUID id, ContractRequestDto request);
-    void updateContractActive(UUID id, boolean active);
+    void updateContractActive(UUID id, ContractActiveUpdateDto dto);
     void deleteContract(UUID id);
 }

@@ -9,6 +9,7 @@ import ivar.hogblom.crmbackend.repository.ContractRepository;
 import ivar.hogblom.crmbackend.repository.CustomerRepository;
 import ivar.hogblom.crmbackend.repository.ResellerRepository;
 import ivar.hogblom.crmbackend.repository.SubscriptionRepository;
+import ivar.hogblom.crmbackend.util.ContractCloneUtil;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -25,15 +26,21 @@ public class ContractServiceImpl implements ContractService {
     private final SubscriptionRepository subscriptionRepository;
     private final ResellerRepository resellerRepository;
     private final CustomerRepository customerRepository;
+    private final ContractEventService contractEventService;
+    private final ContractCloneUtil contractCloneUtil;
 
     public ContractServiceImpl(ContractRepository contractRepository,
                                SubscriptionRepository subscriptionRepository,
                                ResellerRepository resellerRepository,
-                               CustomerRepository customerRepository) {
+                               CustomerRepository customerRepository,
+                               ContractEventService contractEventService,
+                               ContractCloneUtil contractCloneUtil) {
         this.contractRepository = contractRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.resellerRepository = resellerRepository;
         this.customerRepository = customerRepository;
+        this.contractEventService = contractEventService;
+        this.contractCloneUtil = contractCloneUtil;
     }
 
     @Override
@@ -80,30 +87,40 @@ public class ContractServiceImpl implements ContractService {
     public void updateContract(UUID id, ContractRequestDto dto) {
 
         //Validate that contract entity already exists in the database
-        contractRepository.findById(id)
+        Contract existing = contractRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Contract with id " + id + " not found!"));
 
+        //Validate dates
         validateContractDates(dto);
 
+        //Validate customer exists
         Customer customer = customerRepository.findById(dto.customerId())
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
+        //Validate resellers exists
         List<UUID> resellerIds = dto.resellerIds();
         List<Reseller> resellers = resellerRepository.findAllById(resellerIds);
         if (resellers.size() != resellerIds.size()) {
             throw new IllegalArgumentException("One or more reseller IDs do not exist");
         }
 
+        //Validate subscriptions exist
         List<UUID> subscriptionIds = dto.subscriptionIds();
         List<Subscription> subscriptions = subscriptionRepository.findAllById(subscriptionIds);
         if (subscriptions.size() != subscriptionIds.size()) {
             throw new IllegalArgumentException("One or more subscription IDs do not exist");
         }
 
-        Contract contract = toEntity(dto, customer, resellers, subscriptions);
-        contract.setId(id);
-        contractRepository.save(contract);
-    }
+        Contract oldCopy = ContractCloneUtil.cloneContract(existing);
+
+        //Set new values + id and save updated contract
+        Contract entity = toEntity(dto, customer, resellers, subscriptions);
+        entity.setId(id);
+        Contract updatedContract = contractRepository.save(entity);
+
+        //Log the diffs
+        contractEventService.handleContractUpdate(oldCopy, updatedContract);
+        }
 
     @Override
     public void deleteContract(UUID id) {
@@ -112,13 +129,18 @@ public class ContractServiceImpl implements ContractService {
         contractRepository.delete(contract);
     }
 
-    public void updateContractActive(UUID id, boolean active) {
-        var contract = contractRepository.findById(id)
+    public void updateContractActive(UUID id, ContractActiveUpdateDto dto) {
+        Contract contract = contractRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Contract not found"));
 
-        contract.setActive(active);
-        contractRepository.save(contract);
+        boolean newActive = dto.active();
+        contract.setActive(newActive);
+        String detail = dto.detail();
+        Contract updatedContract = contractRepository.save(contract);
+
+        contractEventService.handleContractActiveUpdate(updatedContract, newActive, detail);
     }
+
 
 
 

@@ -132,7 +132,7 @@ public class ContractController {
             @PathVariable UUID id,
             @RequestBody @Valid ContractActiveUpdateDto request
     ) {
-        contractService.updateContractActive(id, request.active());
+        contractService.updateContractActive(id, request);
     }
 }
 
