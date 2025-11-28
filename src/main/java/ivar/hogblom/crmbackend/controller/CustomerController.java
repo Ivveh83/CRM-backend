@@ -31,6 +31,9 @@ public class CustomerController {
         this.customerService = customerService;
     }
 
+    // -----------------------------------------------------
+    // 🔵 GET ALL CUSTOMERS (LIST VIEW)
+    // -----------------------------------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Get all customers",
@@ -43,6 +46,9 @@ public class CustomerController {
         return customerService.findAllCustomersForCustomerListComponent();
     }
 
+    // -----------------------------------------------------
+    // 🔵 GET CUSTOMER BY ID
+    // -----------------------------------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Get customer by ID",
@@ -56,8 +62,9 @@ public class CustomerController {
         return customerService.findById(id);
     }
 
-
-
+    // -----------------------------------------------------
+    // 🔵 GET ALL CUSTOMERS FOR CONTRACT COMPONENTS
+    // -----------------------------------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Get all customers for contracts components",
@@ -70,6 +77,9 @@ public class CustomerController {
         return customerService.findAllCustomersForContractComponents();
     }
 
+    // -----------------------------------------------------
+    // 🔵 CREATE NEW CUSTOMER
+    // -----------------------------------------------------
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create new customer")
@@ -78,6 +88,9 @@ public class CustomerController {
         customerService.createCustomer(request);
     }
 
+    // -----------------------------------------------------
+    // 🔵 UPDATE EXISTING CUSTOMER
+    // -----------------------------------------------------
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
@@ -97,7 +110,9 @@ public class CustomerController {
         customerService.updateCustomer(id, request);
     }
 
-
+    // -----------------------------------------------------
+    // 🔵 DELETE CUSTOMER
+    // -----------------------------------------------------
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
@@ -114,3 +129,4 @@ public class CustomerController {
     }
 
 }
+

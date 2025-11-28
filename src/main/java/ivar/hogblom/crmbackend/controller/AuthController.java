@@ -19,6 +19,9 @@ public class AuthController {
 
     private final AuthService authService;
 
+    // -----------------------------------------------------
+// 🔵 USER LOGIN (GENERATE JWT TOKEN)
+// -----------------------------------------------------
     @SecurityRequirements
     @Operation(summary = "Login to get JWT token",
             description = "Authenticate user credentials and return JWT token")
@@ -27,15 +30,19 @@ public class AuthController {
         return authService.login(request);
     }
 
+    // -----------------------------------------------------
+// 🔵 USER LOGOUT (REVOKE JWT TOKEN)
+// -----------------------------------------------------
     @Operation(summary = "Logout and revoke token",
             description = "Invalidates the current JWT token")
     @ApiResponse(responseCode = "200", description = "Successfully logged out")
     @ApiResponse(responseCode = "400", description = "Invalid token or no token provided")
     @PostMapping("/logout")
     public void logout(@NotNull(message = "Authorization header cannot be null")
-                           @RequestHeader("Authorization") String authHeader) {
+                       @RequestHeader("Authorization") String authHeader) {
         authService.logout(authHeader);
     }
+
 
 
     //För HttpOnly jwt-cookie

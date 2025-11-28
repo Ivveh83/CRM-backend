@@ -34,6 +34,9 @@ public class ContractController {
         this.contractService = contractService;
     }
 
+    // -----------------------------------------------------
+    // 🔵 GET ALL CONTRACTS
+    // -----------------------------------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all contracts", description = "Retrieves a list of all contracts items, " +
             "with names for customer, resellers and subscriptions")
@@ -44,6 +47,9 @@ public class ContractController {
         return contractService.findAll();
     }
 
+    // -----------------------------------------------------
+    // 🔵 GET CONTRACT BY ID
+    // -----------------------------------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Get contract by ID",
@@ -57,7 +63,9 @@ public class ContractController {
         return contractService.findById(id);
     }
 
-
+    // -----------------------------------------------------
+    // 🔵 CREATE NEW CONTRACT
+    // -----------------------------------------------------
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create new contract")
@@ -66,6 +74,9 @@ public class ContractController {
         contractService.createContract(request);
     }
 
+    // -----------------------------------------------------
+    // 🔵 UPDATE EXISTING CONTRACT
+    // -----------------------------------------------------
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
@@ -85,6 +96,9 @@ public class ContractController {
         contractService.updateContract(id, request);
     }
 
+    // -----------------------------------------------------
+    // 🔵 DELETE CONTRACT
+    // -----------------------------------------------------
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
@@ -100,6 +114,9 @@ public class ContractController {
         contractService.deleteContract(id);
     }
 
+    // -----------------------------------------------------
+    // 🔵 UPDATE ACTIVE STATE ONLY
+    // -----------------------------------------------------
     @PatchMapping("/{id}/active")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
@@ -117,8 +134,5 @@ public class ContractController {
     ) {
         contractService.updateContractActive(id, request.active());
     }
-
-
-
-
 }
+

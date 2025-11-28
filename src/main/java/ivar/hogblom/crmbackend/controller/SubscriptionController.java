@@ -35,7 +35,7 @@ public class SubscriptionController {
     }
 
     // ---------------------------------------------------------
-    // GET ALL
+    //🔵 GET ALL
     // ---------------------------------------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all subscriptions",
@@ -48,7 +48,7 @@ public class SubscriptionController {
     }
 
     // ---------------------------------------------------------
-    // GET ALL FOR CONTRACT COMPONENTS
+    //🔵 GET ALL FOR CONTRACT COMPONENTS
     // ---------------------------------------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all subscriptions for contract components",
@@ -61,7 +61,7 @@ public class SubscriptionController {
     }
 
     // ---------------------------------------------------------
-    // GET BY ID
+    //🔵 GET BY ID
     // ---------------------------------------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
@@ -79,7 +79,7 @@ public class SubscriptionController {
     }
 
     // ---------------------------------------------------------
-    // CREATE
+    //🔵 CREATE
     // ---------------------------------------------------------
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -90,7 +90,7 @@ public class SubscriptionController {
     }
 
     // ---------------------------------------------------------
-    // UPDATE
+    // 🔵 UPDATE
     // ---------------------------------------------------------
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -112,7 +112,7 @@ public class SubscriptionController {
     }
 
     // ---------------------------------------------------------
-    // DELETE
+    // 🔵 DELETE
     // ---------------------------------------------------------
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -130,7 +130,7 @@ public class SubscriptionController {
     }
 
     // ---------------------------------------------------------
-    // PATCH ACTIVE (Activate / Pause)
+    // 🔵 PATCH ACTIVE (Activate / Pause)
     // ---------------------------------------------------------
     @PatchMapping("/{id}/active")
     @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -1,5 +1,6 @@
 package ivar.hogblom.crmbackend.service;
 
+import ivar.hogblom.crmbackend.dto.ChangePasswordRequestDto;
 import ivar.hogblom.crmbackend.dto.UserEntityDto;
 import ivar.hogblom.crmbackend.dto.UserEntityRegistrationDto;
 import ivar.hogblom.crmbackend.entity.Role;
@@ -18,8 +19,8 @@ import java.util.List;
 public class UserEntityServiceImpl implements UserEntityService {
 
     private final RoleRepository roleRepository;
-    UserEntityRepository userEntityRepository;
-    PasswordEncoder passwordEncoder;
+    private final UserEntityRepository userEntityRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserEntityServiceImpl(
@@ -52,13 +53,33 @@ public class UserEntityServiceImpl implements UserEntityService {
     }
 
     @Override
+    @Transactional
+    public void changePassword(String username, ChangePasswordRequestDto dto) {
+
+        System.out.println("Changing password for username: " + username);
+        UserEntity existingUser = userEntityRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(dto.currentPassword(), existingUser.getPassword())) {
+            throw new RuntimeException("Incorrect current password");
+        }
+
+        if (dto.currentPassword().equals(dto.newPassword())) {
+            throw new RuntimeException("New password must be different from current password");
+        }
+
+        existingUser.setPassword(passwordEncoder.encode(dto.newPassword()));
+        userEntityRepository.save(existingUser);
+    }
+
+    @Override
     public boolean existsByUsername(String username) {
-        return false;
+        return userEntityRepository.existsByUsername(username);
     }
 
     @Override
     public boolean existsByEmail(String email) {
-        return false;
+        return userEntityRepository.existsByEmail(email);
     }
 
     private UserEntityDto convertToDto(UserEntity userEntity) {

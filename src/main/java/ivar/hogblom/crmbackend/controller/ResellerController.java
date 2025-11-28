@@ -31,6 +31,9 @@ public class ResellerController {
         this.resellerService = resellerService;
     }
 
+    // -----------------------------------------------------
+    // 🔵 GET ALL RESELLERS (LIST VIEW)
+    // -----------------------------------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all resellers",
             description = "Retrieves a list of all resellers for use in reseller list view")
@@ -41,6 +44,9 @@ public class ResellerController {
         return resellerService.findAllResellers();
     }
 
+    // -----------------------------------------------------
+    // 🔵 GET ALL RESELLERS FOR CONTRACT COMPONENTS
+    // -----------------------------------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all resellers",
             description = "Retrieves a list of all resellers for use in contract components (dropdowns)")
@@ -51,6 +57,9 @@ public class ResellerController {
         return resellerService.findAllResellersForContractComponents();
     }
 
+    // -----------------------------------------------------
+    // 🔵 GET RESELLER BY ID
+    // -----------------------------------------------------
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Get reseller by ID",
@@ -64,7 +73,9 @@ public class ResellerController {
         return resellerService.findById(id);
     }
 
-
+    // -----------------------------------------------------
+    // 🔵 CREATE NEW RESELLER
+    // -----------------------------------------------------
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create new reseller")
@@ -73,6 +84,9 @@ public class ResellerController {
         resellerService.createReseller(request);
     }
 
+    // -----------------------------------------------------
+    // 🔵 UPDATE EXISTING RESELLER
+    // -----------------------------------------------------
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
@@ -92,6 +106,9 @@ public class ResellerController {
         resellerService.updateReseller(id, request);
     }
 
+    // -----------------------------------------------------
+    // 🔵 DELETE RESELLER
+    // -----------------------------------------------------
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
@@ -107,6 +124,9 @@ public class ResellerController {
         resellerService.deleteReseller(id);
     }
 
+    // -----------------------------------------------------
+    // 🔵 UPDATE ACTIVE STATUS
+    // -----------------------------------------------------
     @PatchMapping("/{id}/active")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
@@ -126,5 +146,5 @@ public class ResellerController {
         resellerService.updateResellerActive(id, request.active());
     }
 
-
 }
+
