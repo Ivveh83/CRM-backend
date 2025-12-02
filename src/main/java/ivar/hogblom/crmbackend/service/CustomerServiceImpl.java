@@ -5,6 +5,7 @@ import ivar.hogblom.crmbackend.dto.CustomerListResponseDto;
 import ivar.hogblom.crmbackend.dto.CustomerRequestDto;
 import ivar.hogblom.crmbackend.dto.CustomerResponseDto;
 import ivar.hogblom.crmbackend.entity.Customer;
+import ivar.hogblom.crmbackend.entity.CustomerEvent;
 import ivar.hogblom.crmbackend.repository.CustomerRepository;
 import ivar.hogblom.crmbackend.util.CustomerCloneUtil;
 import ivar.hogblom.crmbackend.util.CustomerDiffUtil;
@@ -27,6 +28,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerCloneUtil customerCloneUtil;
     private final CustomerDiffUtil customerDiffUtil;
     private final ContractService contractService;
+    private final CustomerEventService customerEventService;
 
     @Override
     public List<CustomerListResponseDto> findAllCustomersForCustomerListComponent() {
@@ -50,33 +52,7 @@ public class CustomerServiceImpl implements CustomerService {
         return toResponseDto(customer);
     }
 
-
     @Override
-    @Transactional
-    public void updateCustomer(UUID id, CustomerRequestDto request) {
-
-        // 1. Hämta befintlig kund
-        Customer existing = customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Customer not found: " + id));
-
-        // 2. Klona BEFORE
-        Customer oldCopy = customerCloneUtil.clone(existing);
-
-        // 3. Mappa DTO → entity
-        Customer toUpdate = toEntity(request);
-        toUpdate.setId(existing.getId());
-
-        // 4. Spara AFTER
-        Customer updated = customerRepository.save(toUpdate);
-
-        // 5. Skapa lista med diffar
-        List<String> customerDiffs = customerDiffUtil.diff(oldCopy, updated);
-
-        // 6. Låt ContractService hantera kontrakt + events
-        contractService.handleCustomerUpdated(oldCopy, updated, customerDiffs);
-    }
-
-
     @Transactional
     public void createCustomer(CustomerRequestDto request) {
 
@@ -89,9 +65,51 @@ public class CustomerServiceImpl implements CustomerService {
             throw new IllegalArgumentException("Org no already exists");
         }
         Customer customer = toEntity(request);
-        customerRepository.save(customer);
+        Customer savedC = customerRepository.save(customer);
+        customerEventService.logCustomerCreated(savedC);
     }
 
+    @Override
+    @Transactional
+    public void updateCustomer(UUID id, CustomerRequestDto request) {
+
+        // 1. Hämta befintlig kund
+        Customer existing = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found: " + id));
+
+        // 2. Duplikatkontroll innan save()
+
+        boolean orgNoExists = customerRepository.existsByOrgNoAndIdNot(request.orgNo(), id);
+        if (orgNoExists) {
+            throw new RuntimeException("Org no already exists");
+        }
+
+        boolean companyNameExists = customerRepository.existsByCompanyNameAndIdNot(request.companyName(), id);
+        if (companyNameExists) {
+            throw new RuntimeException("Company name already exists");
+        }
+
+        // 3. Klona BEFORE
+        Customer oldCopy = customerCloneUtil.clone(existing);
+
+        // 4. Mappa DTO → entity
+        Customer toUpdate = toEntity(request);
+        toUpdate.setId(existing.getId());
+
+        // 5. Spara AFTER
+        Customer updated = customerRepository.save(toUpdate);
+
+        // 6. Skapa diffar
+        List<String> customerDiffs = customerDiffUtil.diff(oldCopy, updated);
+
+        // 7. Event + loggning
+        contractService.handleCustomerUpdated(oldCopy, updated, customerDiffs);
+        customerEventService.logCustomerUpdated(updated, customerDiffs);
+    }
+
+
+
+    @Transactional
     public void deleteCustomer(UUID id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found: " + id));
@@ -100,6 +118,10 @@ public class CustomerServiceImpl implements CustomerService {
             throw new RuntimeException("Customer cannot be deleted because it is used in contracts");
         }
 
+        //Transactional (Rollback if something goes wrong)
+        customerEventService.logCustomerDeleted(customer);
+
+        //Transactional
         customerRepository.delete(customer);
     }
 

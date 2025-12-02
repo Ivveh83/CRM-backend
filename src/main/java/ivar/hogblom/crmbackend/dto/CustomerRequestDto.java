@@ -1,13 +1,14 @@
 package ivar.hogblom.crmbackend.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.time.LocalDate;
 
 @Builder
 public record CustomerRequestDto(
-        String companyName,
-        String orgNo,
+        @NotNull String companyName,
+        @NotNull String orgNo,
         String contactName,
         String contactEmail,
         String contactPhone,

@@ -13,4 +13,8 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
     Customer findByOrgNo(String orgNo);
     boolean existsByCompanyName(String companyName);
     boolean existsByOrgNo(String orgNo);
+    boolean existsByOrgNoAndIdNot(String orgNo, UUID id);
+    boolean existsByCompanyNameAndIdNot(String companyName, UUID id);
+
+
 }

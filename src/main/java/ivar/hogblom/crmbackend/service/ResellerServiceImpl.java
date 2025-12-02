@@ -3,14 +3,11 @@ package ivar.hogblom.crmbackend.service;
 import ivar.hogblom.crmbackend.dto.ResellerForContractComponentsDto;
 import ivar.hogblom.crmbackend.dto.ResellerRequestDto;
 import ivar.hogblom.crmbackend.dto.ResellerResponseDto;
-import ivar.hogblom.crmbackend.entity.Contract;
 import ivar.hogblom.crmbackend.entity.Reseller;
-import ivar.hogblom.crmbackend.repository.ContractRepository;
 import ivar.hogblom.crmbackend.repository.ResellerRepository;
 import ivar.hogblom.crmbackend.util.ResellerCloneUtil;
 import ivar.hogblom.crmbackend.util.ResellerDiffUtil;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +24,7 @@ public class ResellerServiceImpl implements ResellerService {
     final private ContractService contractService;
     final private ResellerCloneUtil resellerCloneUtil;
     final private ResellerDiffUtil resellerDiffUtil;
+    private final ResellerEventService resellerEventService;
 
 
     @Override
@@ -51,16 +49,26 @@ public class ResellerServiceImpl implements ResellerService {
         return toResellerResponseDto(reseller);
     }
 
+    @Transactional
     @Override
     public void createReseller(ResellerRequestDto request) {
-        boolean exists = resellerRepository.existsByOrgNo(request.orgNo());
-        if (exists) {
+        boolean orgNoExists = resellerRepository.existsByOrgNo(request.orgNo());
+        if (orgNoExists) {
             throw new IllegalArgumentException(
                     "A reseller with orgNo " + request.orgNo() + " already exists."
             );
         }
+        boolean nameExists = resellerRepository.existsByName(request.name());
+        if (nameExists) {
+            throw new IllegalArgumentException(
+                    "A reseller with name " + request.name() + " already exists."
+            );
+        }
+
         Reseller reseller = toEntity(request);
-        resellerRepository.save(reseller);
+        Reseller createdReseller = resellerRepository.save(reseller);
+
+        resellerEventService.logResellerCreated(createdReseller);
     }
 
     @Override
@@ -91,6 +99,9 @@ public class ResellerServiceImpl implements ResellerService {
 
         // 6. Låt ContractService hantera kontrakten + eventlogg
         contractService.handleResellerUpdated(oldCopy, updated, diffs);
+
+        // 7. Låt resellerEventService hantera eventlogg
+        resellerEventService.logResellerUpdated(updated, diffs);
     }
 
     @Override
@@ -101,12 +112,16 @@ public class ResellerServiceImpl implements ResellerService {
                 .orElseThrow(() -> new RuntimeException("Reseller not found: " + id));
 
         // 1. Clone BEFORE deletion (for event logging)
-        Reseller oldCopy = resellerCloneUtil.clone(existing);
+        Reseller clonedReseller = resellerCloneUtil.clone(existing);
 
         // 2. Let ContractService handle ALL logic regarding affected contracts
-        contractService.handleResellerDeleted(oldCopy, existing);
+        contractService.handleResellerDeleted(clonedReseller, existing);
 
-        // 3. Finally delete the reseller itself
+        // 3. Log deletion as a ResellerEvent. Transactional (Rollback if something goes wrong)
+
+        resellerEventService.logResellerDeleted(clonedReseller);
+
+        // 4. Finally delete the reseller itself, transactional
         resellerRepository.delete(existing);
     }
 
@@ -124,8 +139,15 @@ public class ResellerServiceImpl implements ResellerService {
 
         Reseller updated = resellerRepository.save(reseller);
 
-        // Låt ContractEventService hantera loggen
+        // Låt ContractEventService hantera sin logg
         contractEventService.logResellerActiveUpdate(updated);
+
+        //Låt ResellerEventService hantera sin logg
+        if (updated.isActive()) {
+            resellerEventService.logResellerReactivated(updated);
+        }else {
+            resellerEventService.logResellerPaused(updated);
+        }
     }
 
 

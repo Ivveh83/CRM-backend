@@ -25,11 +25,12 @@ public class Customer {
     @UuidGenerator(style = UuidGenerator.Style.TIME) // UUIDv7
     private UUID id;
 
-    // ⬅ ENDA required-fältet
+    // ⬅ Required-fält
     @Column(name = "company_name", nullable = false, unique = true)
     private String companyName;
 
-    @Column(name = "org_no", unique = true)
+    // ⬅ Required-fält
+    @Column(name = "org_no", nullable = false, unique = true)
     private String orgNo;
 
     @Column(name = "contact_name")

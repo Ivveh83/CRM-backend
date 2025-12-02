@@ -21,9 +21,10 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionCloneUtil subscriptionCloneUtil;
     private final ContractService contractService;
-    private final ContractRepository contractRepository;
     private final ContractEventService contractEventService;
+    private final SubscriptionEventService subscriptionEventService;
     private final SubscriptionDiffUtil subscriptionDiffUtil;
+
 
     // ---------------------------------------------------------
     // FIND ALL
@@ -63,7 +64,10 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         Subscription subscription = toEntity(request);
 
-        subscriptionRepository.save(subscription);
+        Subscription created = subscriptionRepository.save(subscription);
+
+        subscriptionEventService.logSubscriptionCreated(created);
+
     }
 
     // ---------------------------------------------------------
@@ -79,7 +83,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         // 1. Klona BEFORE
         Subscription oldCopy = subscriptionCloneUtil.clone(existing);
 
-        // 2. Uppdatera entity
+        // 2. Uppdatera entity, but not field active
         updateEntity(existing, request);
 
         // 3. Spara AFTER
@@ -90,9 +94,32 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         // 5. Låt ContractService sköta ALL logik
         contractService.handleSubscriptionUpdated(oldCopy, updated, subscriptionDiffs);
+
+        // 6. Låt SubscriptionEventService logga Subscription
+        subscriptionEventService.logSubscriptionUpdated(updated, subscriptionDiffs);
     }
 
+    // ---------------------------------------------------------
+    // UPDATE ACTIVE
+    // ---------------------------------------------------------
+    @Override
+    @Transactional
+    public void updateSubscriptionActive(UUID id, boolean active) {
 
+        Subscription subscription = subscriptionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + id));
+
+        subscription.setActive(active);
+
+        Subscription updatedSub = subscriptionRepository.save(subscription);
+        contractEventService.logSubscriptionActiveUpdate(updatedSub);
+
+        if (updatedSub.getActive()) {
+            subscriptionEventService.logSubscriptionReactivated(updatedSub);
+        }else {
+            subscriptionEventService.logSubscriptionPaused(updatedSub);
+        }
+    }
 
     // ---------------------------------------------------------
     // DELETE
@@ -112,25 +139,11 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         // Delete subscription, tranactional
         subscriptionRepository.delete(subscription);
+
+        // Log SubscriptionEvent
+        subscriptionEventService.logSubscriptionDeleted(oldCopy);
     }
 
-
-
-    // ---------------------------------------------------------
-    // UPDATE ACTIVE
-    // ---------------------------------------------------------
-    @Override
-    @Transactional
-    public void updateSubscriptionActive(UUID id, boolean active) {
-
-        Subscription subscription = subscriptionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + id));
-
-        subscription.setActive(active);
-
-        Subscription updatedSub = subscriptionRepository.save(subscription);
-        contractEventService.logSubscriptionActiveUpdate(updatedSub);
-    }
 
 
     // ---------------------------------------------------------
@@ -153,6 +166,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
                 .build();
     }
 
+    // This method do not update active
     private void updateEntity(Subscription subscription, SubscriptionRequestDto dto) {
         subscription.setName(dto.name());
         subscription.setCategory(dto.category());
@@ -161,7 +175,6 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         subscription.setPricePerMonth(dto.pricePerMonth());
         subscription.setContractLength(dto.contractLength());
         subscription.setRenewalPeriod(dto.renewalPeriod());
-        subscription.setActive(dto.active());
         subscription.setSupportContact(dto.supportContact());
         subscription.setCreatedAt(dto.createdAt());
         subscription.setNotes(dto.notes());
