@@ -18,6 +18,7 @@ public class ContractCloneUtil {
                 .active(c.isActive())
                 .contractDate(c.getContractDate())
                 .contractLengthMonths(c.getContractLengthMonths())
+                .totalPricePerMonth(c.getTotalPricePerMonth())
                 .dueDate(c.getDueDate())
 
                 .renewalDates(

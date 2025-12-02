@@ -11,7 +11,7 @@ public record SubscriptionRequestDto(
         String category,
         String description,
         String serviceLevel,
-        @NotNull Integer pricePerMonth,
+        @NotNull Double pricePerMonth,
         @NotNull Integer contractLength,
         Integer renewalPeriod,
         Boolean active,

@@ -11,5 +11,5 @@ public record SubscriptionForContractComponentsDto(
         Integer contractLength,
         Integer renewalPeriod,
         Boolean active,
-        Integer pricePerMonth
+        Double pricePerMonth
 ) {}

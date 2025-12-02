@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import ivar.hogblom.crmbackend.dto.ContractActiveUpdateDto;
+import ivar.hogblom.crmbackend.dto.ContractRenewalDto;
 import ivar.hogblom.crmbackend.dto.ContractResponseDto;
 import ivar.hogblom.crmbackend.dto.ContractRequestDto;
 import ivar.hogblom.crmbackend.service.ContractService;
@@ -134,5 +135,27 @@ public class ContractController {
     ) {
         contractService.updateContractActive(id, request);
     }
+
+    // -----------------------------------------------------
+// 🔵 RENEW CONTRACT
+// -----------------------------------------------------
+    @PatchMapping("/{id}/renew")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(
+            summary = "Renew a contract",
+            description = "Updates due date, renewal history and contract status"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Contract renewed successfully"),
+            @ApiResponse(responseCode = "404", description = "Contract not found")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    public void renewContract(
+            @PathVariable UUID id,
+            @RequestBody @Valid ContractRenewalDto request
+    ) {
+        contractService.renewContract(id, request);
+    }
+
 }
 

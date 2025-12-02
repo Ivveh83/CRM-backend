@@ -32,10 +32,11 @@ public class ContractDiffUtil {
            🔹 2. Enkla fält (LocalDate, Integer, String)
         ============================================================ */
 
-        compareField(oldC.getContractDate(), newC.getContractDate(), "Kontraktsdatum", changes);
-        compareField(oldC.getDueDate(), newC.getDueDate(), "Förfallodatum", changes);
-        compareField(oldC.getContractLengthMonths(), newC.getContractLengthMonths(), "Kontraktslängd (mån)", changes);
-        compareField(oldC.getComment(), newC.getComment(), "Kommentar", changes);
+        compareField(oldC.getContractDate(), newC.getContractDate(), "Kontraktsdatum ändrat", changes);
+        compareField(oldC.getDueDate(), newC.getDueDate(), "Förfallodatum ändrat", changes);
+        compareField(oldC.getContractLengthMonths(), newC.getContractLengthMonths(), "Kontraktslängd (mån) ändrad", changes);
+        compareField(oldC.getComment(), newC.getComment(), "Kommentar ändrad", changes);
+        compareField(oldC.getTotalPricePerMonth(), newC.getTotalPricePerMonth(), "Totalt pris ändrat", changes);
 
         /* ============================================================
            🔹 3. Renewal-datum (listor med LocalDate)
@@ -65,7 +66,7 @@ public class ContractDiffUtil {
                 oldC.getResellers(),
                 newC.getResellers(),
                 Reseller::getName,
-                "Återförsäljare",
+                "Återförsäljare ",
                 changes
         );
 
@@ -77,7 +78,7 @@ public class ContractDiffUtil {
                 oldC.getSubscriptions(),
                 newC.getSubscriptions(),
                 Subscription::getName,
-                "Abonnemang",
+                "Abonnemang ",
                 changes
         );
 

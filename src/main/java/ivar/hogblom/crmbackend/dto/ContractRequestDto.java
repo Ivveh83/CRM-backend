@@ -16,6 +16,7 @@ public record ContractRequestDto(
                                  @NotNull LocalDate contractDate,
                                  @NotNull LocalDate dueDate,
                                  List<LocalDate> renewalDates,
+                                 @NotNull Double totalPricePerMonth,
                                  boolean status,
                                  boolean active,
                                  @NotNull Integer contractLengthMonths,

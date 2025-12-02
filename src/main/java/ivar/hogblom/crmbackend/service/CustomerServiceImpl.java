@@ -6,6 +6,9 @@ import ivar.hogblom.crmbackend.dto.CustomerRequestDto;
 import ivar.hogblom.crmbackend.dto.CustomerResponseDto;
 import ivar.hogblom.crmbackend.entity.Customer;
 import ivar.hogblom.crmbackend.repository.CustomerRepository;
+import ivar.hogblom.crmbackend.util.CustomerCloneUtil;
+import ivar.hogblom.crmbackend.util.CustomerDiffUtil;
+import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,14 +20,13 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
-
-    @Autowired
-    public CustomerServiceImpl(CustomerRepository customerRepository) {
-        this.customerRepository = customerRepository;
-    }
+    private final CustomerCloneUtil customerCloneUtil;
+    private final CustomerDiffUtil customerDiffUtil;
+    private final ContractService contractService;
 
     @Override
     public List<CustomerListResponseDto> findAllCustomersForCustomerListComponent() {
@@ -53,13 +55,27 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public void updateCustomer(UUID id, CustomerRequestDto request) {
 
-        customerRepository.findById(id)
+        // 1. Hämta befintlig kund
+        Customer existing = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found: " + id));
 
-        Customer updatedCustomer = toEntity(request);
-        updatedCustomer.setId(id);
-        customerRepository.save(updatedCustomer);
+        // 2. Klona BEFORE
+        Customer oldCopy = customerCloneUtil.clone(existing);
+
+        // 3. Mappa DTO → entity
+        Customer toUpdate = toEntity(request);
+        toUpdate.setId(existing.getId());
+
+        // 4. Spara AFTER
+        Customer updated = customerRepository.save(toUpdate);
+
+        // 5. Skapa lista med diffar
+        List<String> customerDiffs = customerDiffUtil.diff(oldCopy, updated);
+
+        // 6. Låt ContractService hantera kontrakt + events
+        contractService.handleCustomerUpdated(oldCopy, updated, customerDiffs);
     }
+
 
     @Transactional
     public void createCustomer(CustomerRequestDto request) {
@@ -111,6 +127,7 @@ public class CustomerServiceImpl implements CustomerService {
         return CustomerForContractComponentsDto.builder()
                 .id(c.getId())
                 .companyName(c.getCompanyName())
+                .orgNo(c.getOrgNo())
                 .build();
     }
 

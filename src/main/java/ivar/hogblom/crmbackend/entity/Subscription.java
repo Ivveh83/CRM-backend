@@ -37,7 +37,7 @@ public class Subscription {
 
     // ✔ Required-fält
     @Column(name = "price_per_month", nullable = false)
-    private Integer pricePerMonth;
+    private Double pricePerMonth;
 
     // ✔ Required-fält
     @Column(name = "contract_length", nullable = false)

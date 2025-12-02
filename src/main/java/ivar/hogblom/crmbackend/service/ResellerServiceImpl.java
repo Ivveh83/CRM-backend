@@ -7,6 +7,9 @@ import ivar.hogblom.crmbackend.entity.Contract;
 import ivar.hogblom.crmbackend.entity.Reseller;
 import ivar.hogblom.crmbackend.repository.ContractRepository;
 import ivar.hogblom.crmbackend.repository.ResellerRepository;
+import ivar.hogblom.crmbackend.util.ResellerCloneUtil;
+import ivar.hogblom.crmbackend.util.ResellerDiffUtil;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,15 +19,15 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class ResellerServiceImpl implements ResellerService {
 
     final private ResellerRepository resellerRepository;
-    final private ContractRepository contractRepository;
-    @Autowired
-    public ResellerServiceImpl(ResellerRepository resellerRepository, ContractRepository contractRepository) {
-        this.resellerRepository = resellerRepository;
-        this.contractRepository = contractRepository;
-    }
+    final private ContractEventService contractEventService;
+    final private ContractService contractService;
+    final private ResellerCloneUtil resellerCloneUtil;
+    final private ResellerDiffUtil resellerDiffUtil;
+
 
     @Override
     public List<ResellerResponseDto> findAllResellers() {
@@ -61,10 +64,17 @@ public class ResellerServiceImpl implements ResellerService {
     }
 
     @Override
+    @Transactional
     public void updateReseller(UUID id, ResellerRequestDto request) {
-        Reseller existing = resellerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Reseller with id " + id + " not found!"));
 
+        // 1. Hämta befintlig återförsäljare
+        Reseller existing = resellerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reseller not found: " + id));
+
+        // 2. Klona BEFORE
+        Reseller oldCopy = resellerCloneUtil.clone(existing);
+
+        // 3. Uppdatera entity från DTO, ej active
         existing.setName(request.name());
         existing.setOrgNo(request.orgNo());
         existing.setAddress(request.address());
@@ -73,41 +83,50 @@ public class ResellerServiceImpl implements ResellerService {
         existing.setInvoiceReference(request.invoiceReference());
         existing.setCreatedAt(request.createdAt());
 
-        resellerRepository.save(existing);
-    }
+        // 4. Spara AFTER
+        Reseller updated = resellerRepository.save(existing);
 
+        // 5. Diffa återförsäljaren
+        List<String> diffs = resellerDiffUtil.diff(oldCopy, updated);
+
+        // 6. Låt ContractService hantera kontrakten + eventlogg
+        contractService.handleResellerUpdated(oldCopy, updated, diffs);
+    }
 
     @Override
     @Transactional
     public void deleteReseller(UUID id) {
 
-        Reseller reseller = resellerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Reseller with id " + id + " not found!"));
+        Reseller existing = resellerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reseller not found: " + id));
 
-        List<Contract> contracts = contractRepository.findAllByResellers_Id(id);
+        // 1. Clone BEFORE deletion (for event logging)
+        Reseller oldCopy = resellerCloneUtil.clone(existing);
 
-        for (Contract contract : contracts) {
-            contract.getResellers().remove(reseller);
-        }
+        // 2. Let ContractService handle ALL logic regarding affected contracts
+        contractService.handleResellerDeleted(oldCopy, existing);
 
-        contractRepository.saveAll(contracts);
-
-        resellerRepository.delete(reseller);
+        // 3. Finally delete the reseller itself
+        resellerRepository.delete(existing);
     }
 
+// ---------------------------------------------------------
+// UPDATE ACTIVE
+// ---------------------------------------------------------
+    @Override
     @Transactional
     public void updateResellerActive(UUID id, boolean active) {
 
         Reseller reseller = resellerRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Reseller not found with id: " + id)
-                );
+                .orElseThrow(() -> new RuntimeException("Reseller not found with id: " + id));
 
         reseller.setActive(active);
-        resellerRepository.save(reseller);
+
+        Reseller updated = resellerRepository.save(reseller);
+
+        // Låt ContractEventService hantera loggen
+        contractEventService.logResellerActiveUpdate(updated);
     }
-
-
 
 
     private ResellerResponseDto toResellerResponseDto(Reseller r) {
@@ -137,6 +156,7 @@ public class ResellerServiceImpl implements ResellerService {
         return ResellerForContractComponentsDto.builder()
                 .id(r.getId())
                 .name(r.getName())
+                .orgNo(r.getOrgNo())
                 .active(r.isActive())
                 .build();
     }

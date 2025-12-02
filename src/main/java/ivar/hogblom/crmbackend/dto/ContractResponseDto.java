@@ -17,6 +17,7 @@ public record ContractResponseDto(
         LocalDate contractDate,
         Integer contractLengthMonths,
         List<LocalDate> renewalDates,
+        Double totalPricePerMonth,
         LocalDate dueDate,
         String comment
 ) {}

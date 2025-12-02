@@ -1,12 +1,13 @@
 package ivar.hogblom.crmbackend.service;
 
 import ivar.hogblom.crmbackend.dto.*;
-import ivar.hogblom.crmbackend.entity.Contract;
 import ivar.hogblom.crmbackend.entity.Subscription;
 import ivar.hogblom.crmbackend.repository.ContractRepository;
 import ivar.hogblom.crmbackend.repository.SubscriptionRepository;
+import ivar.hogblom.crmbackend.util.SubscriptionCloneUtil;
+import ivar.hogblom.crmbackend.util.SubscriptionDiffUtil;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,16 +15,15 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class SubscriptionServiceImpl implements SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
+    private final SubscriptionCloneUtil subscriptionCloneUtil;
+    private final ContractService contractService;
     private final ContractRepository contractRepository;
-
-    @Autowired
-    public SubscriptionServiceImpl(SubscriptionRepository subscriptionRepository, ContractRepository contractRepository) {
-        this.subscriptionRepository = subscriptionRepository;
-        this.contractRepository = contractRepository;
-    }
+    private final ContractEventService contractEventService;
+    private final SubscriptionDiffUtil subscriptionDiffUtil;
 
     // ---------------------------------------------------------
     // FIND ALL
@@ -73,13 +73,26 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     @Transactional
     public void updateSubscription(UUID id, SubscriptionRequestDto request) {
 
-        Subscription subscription = subscriptionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + id));
+        Subscription existing = subscriptionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Subscription not found: " + id));
 
-        updateEntity(subscription, request);
+        // 1. Klona BEFORE
+        Subscription oldCopy = subscriptionCloneUtil.clone(existing);
 
-        subscriptionRepository.save(subscription);
+        // 2. Uppdatera entity
+        updateEntity(existing, request);
+
+        // 3. Spara AFTER
+        Subscription updated = subscriptionRepository.save(existing);
+
+        // 4. Diffa abonnemanget
+        List<String> subscriptionDiffs = subscriptionDiffUtil.diff(oldCopy, updated);
+
+        // 5. Låt ContractService sköta ALL logik
+        contractService.handleSubscriptionUpdated(oldCopy, updated, subscriptionDiffs);
     }
+
+
 
     // ---------------------------------------------------------
     // DELETE
@@ -89,22 +102,18 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public void deleteSubscription(UUID id) {
 
         Subscription subscription = subscriptionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Subscription with id " + id + " not found!"));
+                .orElseThrow(() -> new RuntimeException("Subscription not found: " + id));
 
-        // Hitta alla kontrakt som använder detta abonnemang
-        List<Contract> contracts = contractRepository.findAllBySubscriptions_Id(id);
+        // Clone before delete
+        Subscription oldCopy = subscriptionCloneUtil.clone(subscription);
 
-        // Ta bort abonnemanget från varje kontrakt
-        for (Contract contract : contracts) {
-            contract.getSubscriptions().remove(subscription);
-        }
+        // Låt ContractService ta ALL logik, tranactional
+        contractService.handleSubscriptionDeleted(oldCopy, subscription);
 
-        // Spara ändrade kontrakt
-        contractRepository.saveAll(contracts);
-
-        // Ta bort själva abonnemanget
+        // Delete subscription, tranactional
         subscriptionRepository.delete(subscription);
     }
+
 
 
     // ---------------------------------------------------------
@@ -119,7 +128,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         subscription.setActive(active);
 
-        subscriptionRepository.save(subscription);
+        Subscription updatedSub = subscriptionRepository.save(subscription);
+        contractEventService.logSubscriptionActiveUpdate(updatedSub);
     }
 
 

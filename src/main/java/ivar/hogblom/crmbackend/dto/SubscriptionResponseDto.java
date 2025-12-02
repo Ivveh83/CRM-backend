@@ -12,7 +12,7 @@ public record SubscriptionResponseDto(
         String category,
         String description,
         String serviceLevel,
-        Integer pricePerMonth,
+        Double pricePerMonth,
         Integer contractLength,
         Integer renewalPeriod,
         Boolean active,

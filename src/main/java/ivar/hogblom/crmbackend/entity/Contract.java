@@ -56,6 +56,9 @@ public class Contract {
     private Integer contractLengthMonths;
 
     @Column(nullable = false)
+    private Double totalPricePerMonth;
+
+    @Column(nullable = false)
     private LocalDate dueDate;
 
     @ElementCollection

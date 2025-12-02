@@ -8,6 +8,7 @@ import java.util.UUID;
 public record ResellerForContractComponentsDto(
         UUID id,
         String name,
+        String orgNo,
         boolean active
 ) {
 }
