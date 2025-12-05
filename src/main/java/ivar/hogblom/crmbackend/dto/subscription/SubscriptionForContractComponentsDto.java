@@ -1,0 +1,15 @@
+package ivar.hogblom.crmbackend.dto.subscription;
+
+import lombok.Builder;
+
+import java.util.UUID;
+
+@Builder
+public record SubscriptionForContractComponentsDto(
+        UUID id,
+        String name,
+        Integer contractLength,
+        Integer renewalPeriod,
+        Boolean active,
+        Double pricePerMonth
+) {}

@@ -1,7 +1,21 @@
 package ivar.hogblom.crmbackend.config;
 
-import ivar.hogblom.crmbackend.entity.*;
-import ivar.hogblom.crmbackend.repository.*;
+import com.github.slugify.Slugify;
+import ivar.hogblom.crmbackend.entity.contract.Contract;
+import ivar.hogblom.crmbackend.entity.customer.Customer;
+import ivar.hogblom.crmbackend.entity.reseller.Reseller;
+import ivar.hogblom.crmbackend.entity.subscription.Subscription;
+import ivar.hogblom.crmbackend.entity.userEntityAndRole.Role;
+import ivar.hogblom.crmbackend.entity.userEntityAndRole.UserEntity;
+import ivar.hogblom.crmbackend.repository.contract.ContractRepository;
+import ivar.hogblom.crmbackend.repository.customer.CustomerRepository;
+import ivar.hogblom.crmbackend.repository.reseller.ResellerRepository;
+import ivar.hogblom.crmbackend.repository.subscription.SubscriptionRepository;
+import ivar.hogblom.crmbackend.repository.userEntityAndRole.RoleRepository;
+import ivar.hogblom.crmbackend.repository.userEntityAndRole.UserEntityRepository;
+import ivar.hogblom.crmbackend.service.lookup.LookupValueService;
+import ivar.hogblom.crmbackend.dto.lookup.LookupValueCreateDto;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -9,7 +23,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Configuration
 public class DataInitializer {
@@ -17,8 +32,30 @@ public class DataInitializer {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private LookupValueService lookupService;
+
+    private final Slugify slugify = new Slugify();
+
     /**
-     * ⭐ NYTT: Hjälpmetod för att beräkna totalpris per månad baserat på abonnemang
+     * Helper to build lookup DTO
+     */
+    private LookupValueCreateDto createLookup(String type, String label, int order) {
+        return new LookupValueCreateDto(type, label, order);
+    }
+
+    /**
+     * Saves lookups for a specific type (industry, category, etc)
+     */
+    private void createLookupValues(String type, List<String> labels) {
+        int index = 1;
+        for (String label : labels) {
+            lookupService.create(createLookup(type, label, index++));
+        }
+    }
+
+    /**
+     * Sum of subscription monthly prices
      */
     private double calculateTotalPrice(List<Subscription> subscriptions) {
         return subscriptions.stream()
@@ -32,8 +69,8 @@ public class DataInitializer {
                           CustomerRepository customerRepository,
                           ResellerRepository resellerRepository,
                           SubscriptionRepository subscriptionRepository,
-                          ContractRepository contractRepository
-    ) {
+                          ContractRepository contractRepository) {
+
         return args -> {
 
             if (
@@ -45,9 +82,10 @@ public class DataInitializer {
                             contractRepository.count() == 0
             ) {
 
-                // 👨‍💻 Create Developers
+                // ================================================
+                // 1️⃣ ROLES + USERS
+                // ================================================
 
-                System.out.println("Creating initial roles...");
                 Role userRole = new Role();
                 userRole.setName("ROLE_USER");
                 roleRepository.save(userRole);
@@ -56,36 +94,58 @@ public class DataInitializer {
                 adminRole.setName("ROLE_ADMIN");
                 roleRepository.save(adminRole);
 
-                System.out.println("Creating initial users...");
-
                 UserEntity puh = new UserEntity(
                         "Nalle_Puh",
                         passwordEncoder.encode("password"),
-                        "nalle@puh.com");
-                Role admin = roleRepository.findByName("ROLE_ADMIN").get();
-                Role user = roleRepository.findByName("ROLE_USER").get();
-                puh.setRoles(List.of(admin, user));
-                UserEntity savedAdmin = userEntityRepository.save(puh);
-                System.out.println("Admin user created with username: " + savedAdmin.getUsername());
+                        "nalle@puh.com"
+                );
+                puh.setRoles(List.of(adminRole, userRole));
+                userEntityRepository.save(puh);
 
                 UserEntity nasse = new UserEntity(
                         "Nasse",
                         passwordEncoder.encode("password"),
-                        "nasse@puh.com");
-                nasse.setRoles(List.of(user));
-                UserEntity savedUser1 = userEntityRepository.save(nasse);
-                System.out.println("User created with username: " + savedUser1.getUsername());
+                        "nasse@puh.com"
+                );
+                nasse.setRoles(List.of(userRole));
+                userEntityRepository.save(nasse);
 
                 UserEntity kanin = new UserEntity(
                         "Kanin",
                         passwordEncoder.encode("password"),
-                        "kanin@puh.com");
-                kanin.setRoles(List.of(user));
-                UserEntity savedUser2 = userEntityRepository.save(kanin);
-                System.out.println("User created with username: " + savedUser2.getUsername());
+                        "kanin@puh.com"
+                );
+                kanin.setRoles(List.of(userRole));
+                userEntityRepository.save(kanin);
 
 
-                // === CUSTOMERS ===
+                // ================================================
+                // 2️⃣ CREATE LOOKUP VALUES
+                // ================================================
+                System.out.println("Creating lookup values...");
+
+                createLookupValues("industry", List.of(
+                        "IT", "Skogsindustri", "Konsultverksamhet", "Hälsa & wellness"
+                ));
+
+                createLookupValues("customer_type", List.of(
+                        "business"
+                ));
+
+                createLookupValues("subscription_category", List.of(
+                        "Threat Monitoring", "Backup", "Security"
+                ));
+
+                createLookupValues("service_level", List.of(
+                        "Silver (12/5 support)", "Gold (24/7 support)"
+                ));
+
+                System.out.println("Lookup values created.");
+
+
+                // ================================================
+                // 3️⃣ CUSTOMERS
+                // ================================================
 
                 Customer c1 = new Customer();
                 c1.setCompanyName("Nordic IT Solutions AB");
@@ -100,7 +160,7 @@ public class DataInitializer {
                 c1.setIndustry("IT");
                 c1.setCustomerType("business");
                 c1.setCreatedAt(LocalDate.now());
-                c1.setNotes("Prioritetskund. Vill få offert varje år.");
+                c1.setNotes("Prioritetskund.");
 
                 Customer c2 = new Customer();
                 c2.setCompanyName("SkogsTeknik i Småland AB");
@@ -115,7 +175,7 @@ public class DataInitializer {
                 c2.setIndustry("Skogsindustri");
                 c2.setCustomerType("business");
                 c2.setCreatedAt(LocalDate.now());
-                c2.setNotes("Behöver utbildning i samband med installationer.");
+                c2.setNotes("Behöver utbildning.");
 
                 Customer c3 = new Customer();
                 c3.setCompanyName("Hav & Kust Konsult AB");
@@ -130,7 +190,7 @@ public class DataInitializer {
                 c3.setIndustry("Konsultverksamhet");
                 c3.setCustomerType("business");
                 c3.setCreatedAt(LocalDate.now());
-                c3.setNotes("Föredrar kontakt via email. Priskänsliga.");
+                c3.setNotes("Priskänsliga.");
 
                 Customer c4 = new Customer();
                 c4.setCompanyName("Friskvårdsteamet Norden AB");
@@ -145,15 +205,14 @@ public class DataInitializer {
                 c4.setIndustry("Hälsa & wellness");
                 c4.setCustomerType("business");
                 c4.setCreatedAt(LocalDate.now());
-                c4.setNotes("Handläggningstid något långsam. Vill ha automatiska rapporter.");
+                c4.setNotes("Vill ha automatiska rapporter.");
 
-                System.out.println("Creating initial customers...");
                 customerRepository.saveAll(List.of(c1, c2, c3, c4));
-                System.out.println("4 customers created");
 
 
-                // === RESELLERS ===
-
+                // ================================================
+                // 4️⃣ RESELLERS
+                // ================================================
                 Reseller r1 = new Reseller();
                 r1.setName("TechPartner Sverige AB");
                 r1.setOrgNo("556900-1234");
@@ -194,17 +253,16 @@ public class DataInitializer {
                 r4.setInvoiceReference("CLOUD-45-REF");
                 r4.setCreatedAt(LocalDate.now());
 
-                System.out.println("Creating initial resellers...");
                 resellerRepository.saveAll(List.of(r1, r2, r3, r4));
-                System.out.println("4 resellers created");
 
 
-                // === SUBSCRIPTIONS ===
-
+                // ================================================
+                // 5️⃣ SUBSCRIPTIONS
+                // ================================================
                 Subscription s1 = new Subscription();
                 s1.setName("Threat Monitoring Basic");
                 s1.setCategory("Threat Monitoring");
-                s1.setDescription("Grundläggande övervakning av nätverkstrafik och loggar med varningar vid misstänkt aktivitet.");
+                s1.setDescription("Grundläggande övervakning.");
                 s1.setServiceLevel("Silver (12/5 support)");
                 s1.setPricePerMonth(2999.0);
                 s1.setContractLength(12);
@@ -216,7 +274,7 @@ public class DataInitializer {
                 Subscription s2 = new Subscription();
                 s2.setName("Threat Monitoring Pro");
                 s2.setCategory("Threat Monitoring");
-                s2.setDescription("Avancerad hotanalys, intrångsdetektion och automatiska incidentrapporter.");
+                s2.setDescription("Avancerad hotanalys.");
                 s2.setServiceLevel("Gold (24/7 support)");
                 s2.setPricePerMonth(5999.0);
                 s2.setContractLength(12);
@@ -228,7 +286,7 @@ public class DataInitializer {
                 Subscription s3 = new Subscription();
                 s3.setName("Cloud Backup Premium");
                 s3.setCategory("Backup");
-                s3.setDescription("Daglig molnbackup med versionshantering, kryptering och återställningsservice.");
+                s3.setDescription("Daglig molnbackup.");
                 s3.setServiceLevel("Silver (12/5 support)");
                 s3.setPricePerMonth(1499.0);
                 s3.setContractLength(6);
@@ -240,7 +298,7 @@ public class DataInitializer {
                 Subscription s4 = new Subscription();
                 s4.setName("Endpoint Protection Advanced");
                 s4.setCategory("Security");
-                s4.setDescription("Skydd mot malware, ransomware, zero-day exploits och enhetshantering.");
+                s4.setDescription("Skydd mot malware.");
                 s4.setServiceLevel("Gold (24/7 support)");
                 s4.setPricePerMonth(3999.0);
                 s4.setContractLength(12);
@@ -249,10 +307,7 @@ public class DataInitializer {
                 s4.setSupportContact("ep@itpartnerstockholm.se");
                 s4.setCreatedAt(LocalDate.now().minusYears(1));
 
-                System.out.println("Creating initial subscriptions...");
                 subscriptionRepository.saveAll(List.of(s1, s2, s3, s4));
-                System.out.println("4 subscriptions created");
-
 
                 // === CONTRACTS ===
 
@@ -427,4 +482,5 @@ public class DataInitializer {
             }
         };
     }
+
 }

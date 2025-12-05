@@ -1,6 +1,6 @@
 package ivar.hogblom.crmbackend.util;
 
-import ivar.hogblom.crmbackend.entity.Subscription;
+import ivar.hogblom.crmbackend.entity.subscription.Subscription;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

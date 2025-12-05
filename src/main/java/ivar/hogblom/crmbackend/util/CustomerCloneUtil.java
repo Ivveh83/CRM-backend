@@ -1,6 +1,6 @@
 package ivar.hogblom.crmbackend.util;
 
-import ivar.hogblom.crmbackend.entity.Customer;
+import ivar.hogblom.crmbackend.entity.customer.Customer;
 import org.springframework.stereotype.Component;
 
 @Component
