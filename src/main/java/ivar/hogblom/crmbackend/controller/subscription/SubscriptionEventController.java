@@ -1,7 +1,7 @@
 package ivar.hogblom.crmbackend.controller.subscription;
 
 import ivar.hogblom.crmbackend.dto.subscription.SubscriptionEventDto;
-import ivar.hogblom.crmbackend.service.subscription.SubscriptionEventService;
+import ivar.hogblom.crmbackend.crm.service.subscription.SubscriptionEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

@@ -9,7 +9,7 @@ import ivar.hogblom.crmbackend.dto.customer.CustomerForContractComponentsDto;
 import ivar.hogblom.crmbackend.dto.customer.CustomerListResponseDto;
 import ivar.hogblom.crmbackend.dto.customer.CustomerRequestDto;
 import ivar.hogblom.crmbackend.dto.customer.CustomerResponseDto;
-import ivar.hogblom.crmbackend.service.customer.CustomerService;
+import ivar.hogblom.crmbackend.crm.service.customer.CustomerService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

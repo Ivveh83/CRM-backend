@@ -1,7 +1,7 @@
 package ivar.hogblom.crmbackend.controller.customer;
 
 import ivar.hogblom.crmbackend.dto.customer.CustomerEventDto;
-import ivar.hogblom.crmbackend.service.customer.CustomerEventService;
+import ivar.hogblom.crmbackend.crm.service.customer.CustomerEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

@@ -28,15 +28,18 @@ public class SecurityConfig {
     private final JwtAuthEntryPoint authEntryPoint;
     private final JwtAccessDeniedHandler accessDeniedHandler;
     private final JwtRequestFilter jwtRequestFilter;
+    private final DatabaseRoutingFilter databaseRoutingFilter;
 
     @Autowired
     public SecurityConfig(
             JwtRequestFilter jwtRequestFilter,
             JwtAuthEntryPoint authEntryPoint,
-            JwtAccessDeniedHandler accessDeniedHandler) {
+            JwtAccessDeniedHandler accessDeniedHandler,
+            DatabaseRoutingFilter databaseRoutingFilter) {
         this.jwtRequestFilter = jwtRequestFilter;
         this.authEntryPoint = authEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
+        this.databaseRoutingFilter = databaseRoutingFilter;
     }
 
     @Bean
@@ -58,7 +61,8 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(databaseRoutingFilter, JwtRequestFilter.class);
 
         return http.build();
     }

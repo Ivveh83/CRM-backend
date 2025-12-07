@@ -1,8 +1,8 @@
 package ivar.hogblom.crmbackend.security;
 
-import ivar.hogblom.crmbackend.entity.userEntityAndRole.Role;
-import ivar.hogblom.crmbackend.entity.userEntityAndRole.UserEntity;
-import ivar.hogblom.crmbackend.repository.userEntityAndRole.UserEntityRepository;
+import ivar.hogblom.crmbackend.system.entity.userEntityAndRole.Role;
+import ivar.hogblom.crmbackend.system.entity.userEntityAndRole.UserEntity;
+import ivar.hogblom.crmbackend.system.repository.userEntityAndRole.UserEntityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

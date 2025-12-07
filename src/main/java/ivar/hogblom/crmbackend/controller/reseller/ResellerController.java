@@ -9,7 +9,7 @@ import ivar.hogblom.crmbackend.dto.reseller.ResellerActiveUpdateDto;
 import ivar.hogblom.crmbackend.dto.reseller.ResellerForContractComponentsDto;
 import ivar.hogblom.crmbackend.dto.reseller.ResellerRequestDto;
 import ivar.hogblom.crmbackend.dto.reseller.ResellerResponseDto;
-import ivar.hogblom.crmbackend.service.reseller.ResellerService;
+import ivar.hogblom.crmbackend.crm.service.reseller.ResellerService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import ivar.hogblom.crmbackend.dto.userEntity.*;
-import ivar.hogblom.crmbackend.service.userEntity.UserEntityService;
+import ivar.hogblom.crmbackend.system.service.userEntity.UserEntityService;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

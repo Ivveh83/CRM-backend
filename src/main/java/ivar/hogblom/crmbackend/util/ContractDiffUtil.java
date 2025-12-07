@@ -1,8 +1,8 @@
 package ivar.hogblom.crmbackend.util;
 
-import ivar.hogblom.crmbackend.entity.contract.Contract;
-import ivar.hogblom.crmbackend.entity.reseller.Reseller;
-import ivar.hogblom.crmbackend.entity.subscription.Subscription;
+import ivar.hogblom.crmbackend.crm.entity.contract.Contract;
+import ivar.hogblom.crmbackend.crm.entity.reseller.Reseller;
+import ivar.hogblom.crmbackend.crm.entity.subscription.Subscription;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
