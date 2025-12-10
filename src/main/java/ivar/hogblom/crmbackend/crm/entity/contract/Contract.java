@@ -1,5 +1,6 @@
 package ivar.hogblom.crmbackend.crm.entity.contract;
 
+import ivar.hogblom.crmbackend.config.jpa.LocalDateEpochMillisConverter;
 import ivar.hogblom.crmbackend.crm.entity.customer.Customer;
 import ivar.hogblom.crmbackend.crm.entity.reseller.Reseller;
 import ivar.hogblom.crmbackend.crm.entity.subscription.Subscription;
@@ -52,16 +53,19 @@ public class Contract {
     @Column(nullable = false)
     private boolean active;
 
-    @Column(nullable = false)
+    @Column(name = "contract_date", nullable = false)
+    @Convert(converter = LocalDateEpochMillisConverter.class)
     private LocalDate contractDate;
 
-    @Column(nullable = false)
+    @Column(name = "contract_length_months", nullable = false)
     private Integer contractLengthMonths;
 
-    @Column(nullable = false)
+
+    @Column(name = "total_price_per_month", nullable = false)
     private Double totalPricePerMonth;
 
-    @Column(nullable = false)
+    @Column(name = "due_date", nullable = false)
+    @Convert(converter = LocalDateEpochMillisConverter.class)
     private LocalDate dueDate;
 
     @ElementCollection
@@ -70,6 +74,7 @@ public class Contract {
             joinColumns = @JoinColumn(name = "contract_id")
     )
     @Column(name = "renewal_dates")
+    @Convert(converter = LocalDateEpochMillisConverter.class)
     private List<LocalDate> renewalDates;
 
     @Column(columnDefinition = "TEXT")

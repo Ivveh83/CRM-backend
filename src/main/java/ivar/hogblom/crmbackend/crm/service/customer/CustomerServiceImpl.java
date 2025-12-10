@@ -62,7 +62,6 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    
     public void createCustomer(CustomerRequestDto request) {
 
         // 🛑 Validation – unique fields

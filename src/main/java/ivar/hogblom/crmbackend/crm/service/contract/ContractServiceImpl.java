@@ -393,7 +393,9 @@ public class ContractServiceImpl implements ContractService {
                 .active(contract.isActive())
                 .contractDate(contract.getContractDate())
                 .contractLengthMonths(contract.getContractLengthMonths())
-                .renewalDates(contract.getRenewalDates())
+                .renewalDates(contract.getRenewalDates() == null
+                ? List.of()
+                        : List.copyOf(contract.getRenewalDates()))
                 .totalPricePerMonth(contract.getTotalPricePerMonth())
                 .dueDate(contract.getDueDate())
                 .comment(contract.getComment())

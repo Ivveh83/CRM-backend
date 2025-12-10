@@ -1,5 +1,6 @@
 package ivar.hogblom.crmbackend.crm.entity.reseller;
 
+import ivar.hogblom.crmbackend.config.jpa.LocalDateTimeEpochMillisConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,14 +20,15 @@ public class ResellerEvent {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(name = "reseller_id", nullable = false)
     private UUID resellerId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "event_type", nullable = false)
     private ResellerEventType eventType;
 
-    @Column(nullable = false)
+    @Column(name = "event_ts", nullable = false)
+    @Convert(converter = LocalDateTimeEpochMillisConverter.class)
     private LocalDateTime eventTs;
 
     @Column(columnDefinition = "TEXT")

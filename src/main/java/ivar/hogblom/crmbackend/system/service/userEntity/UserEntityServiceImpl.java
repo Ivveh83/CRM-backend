@@ -3,6 +3,7 @@ package ivar.hogblom.crmbackend.system.service.userEntity;
 import ivar.hogblom.crmbackend.dto.userEntity.*;
 import ivar.hogblom.crmbackend.system.entity.userEntityAndRole.Role;
 import ivar.hogblom.crmbackend.system.entity.userEntityAndRole.UserEntity;
+import ivar.hogblom.crmbackend.system.repository.db.DatabaseConnectionRepository;
 import ivar.hogblom.crmbackend.system.repository.userEntityAndRole.RoleRepository;
 import ivar.hogblom.crmbackend.system.repository.userEntityAndRole.UserEntityRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,14 +24,16 @@ public class UserEntityServiceImpl implements UserEntityService {
     private final RoleRepository roleRepository;
     private final UserEntityRepository userEntityRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DatabaseConnectionRepository databaseConnectionRepository;
 
     @Autowired
     public UserEntityServiceImpl(
             UserEntityRepository userEntityRepository,
-            PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
+            PasswordEncoder passwordEncoder, RoleRepository roleRepository, DatabaseConnectionRepository databaseConnectionRepository) {
         this.userEntityRepository = userEntityRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
+        this.databaseConnectionRepository = databaseConnectionRepository;
     }
 
     @Override
@@ -47,7 +50,7 @@ public class UserEntityServiceImpl implements UserEntityService {
         userEntity.setEmail(userEntityRegistrationDto.email());
         userEntity.setPassword(passwordEncoder.encode(userEntityRegistrationDto.password()));
 
-        Role role = roleRepository.findByName("ROLE_ADMIN")
+        Role role = roleRepository.findByName("ROLE_USER")
                 .orElseThrow(() -> new IllegalStateException("ROLE_USER saknas i system-databasen"));
         userEntity.setRoles(List.of(role));
         userEntityRepository.save(userEntity);
@@ -172,6 +175,12 @@ public class UserEntityServiceImpl implements UserEntityService {
         if (!userEntityRepository.existsById(id)) {
             throw new EntityNotFoundException("User not found");
         }
+        if (databaseConnectionRepository.existsByOwnerId(id)) {
+            throw new IllegalStateException(
+                    "User owns database connections and cannot be deleted"
+            );
+        }
+
         userEntityRepository.deleteById(id);
     }
 

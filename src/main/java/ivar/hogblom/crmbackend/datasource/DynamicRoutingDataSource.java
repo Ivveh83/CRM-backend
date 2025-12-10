@@ -3,16 +3,19 @@ package ivar.hogblom.crmbackend.datasource;
 // package ivar.hogblom.crmbackend.datasource;
 
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
+import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
+
 
 public class DynamicRoutingDataSource extends AbstractRoutingDataSource {
 
     private static final ThreadLocal<String> CURRENT_KEY = new ThreadLocal<>();
 
     private final Map<Object, Object> dynamicTargets = new HashMap<>();
+
 
     public static void setCurrentKey(String key) {
         CURRENT_KEY.set(key);

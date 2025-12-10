@@ -1,5 +1,6 @@
 package ivar.hogblom.crmbackend.crm.entity.contract;
 
+import ivar.hogblom.crmbackend.config.jpa.LocalDateTimeEpochMillisConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,15 +21,18 @@ public class ContractEvent {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(name = "contract_id", nullable = false)
     private UUID contractId;
 
-    private String customerOrgNo;   // ⭐ nytt fält
+    @Column(name = "customer_org_no")
+    private String customerOrgNo;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "event_type", nullable = false)
     private ContractEventType eventType;
 
-    @Column(nullable = false)
+    @Column(name = "event_ts", nullable = false)
+    @Convert(converter = LocalDateTimeEpochMillisConverter.class)
     private LocalDateTime eventTs;
 
     @Column(columnDefinition = "TEXT")

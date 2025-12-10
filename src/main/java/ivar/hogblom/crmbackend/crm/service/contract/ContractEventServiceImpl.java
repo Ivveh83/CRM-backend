@@ -30,8 +30,8 @@ import java.util.UUID;
 @Transactional(transactionManager = "crmTransactionManager")
 public class ContractEventServiceImpl implements ContractEventService {
 
-    private final String CREATED = "Kontraktet skapades.";
-    private final String DELETED = "Kontraktet raderades.";
+    private final String CREATED = "Kontraktet skapades: ";
+    private final String DELETED = "Kontraktet raderades: ";
 
     private final ContractEventRepository contractEventRepository;
     private final ContractRepository contractRepository;
@@ -46,7 +46,7 @@ public class ContractEventServiceImpl implements ContractEventService {
         ContractEvent event = toEntity(
                 newC,
                 ContractEventType.SKAPAT,
-                CREATED
+                CREATED + newC
         );
 
         contractEventRepository.save(event);

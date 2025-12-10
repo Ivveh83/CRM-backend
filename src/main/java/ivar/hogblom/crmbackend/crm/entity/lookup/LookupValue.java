@@ -25,7 +25,9 @@ public class LookupValue {
     @Column(nullable = false)
     private String label;
 
+    @Column(name = "sort_order")
     private Integer sortOrder;
+
 
     @Column(nullable = false)
     private boolean active;

@@ -35,4 +35,10 @@ public class DatabaseConnection {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
     private UserEntity owner;
+
+    //Om flera användare ska kunna dela samma db
+    /*
+    @ManyToMany
+    List<UserEntity> allowedUsers;
+    */
 }

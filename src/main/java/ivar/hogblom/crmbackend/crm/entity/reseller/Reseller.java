@@ -1,5 +1,6 @@
 package ivar.hogblom.crmbackend.crm.entity.reseller;
 
+import ivar.hogblom.crmbackend.config.jpa.LocalDateEpochMillisConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -46,6 +47,7 @@ public class Reseller {
     private String invoiceReference;
 
     @Column(name = "created_at")
+    @Convert(converter = LocalDateEpochMillisConverter.class)
     private LocalDate createdAt;
 
 }

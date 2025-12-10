@@ -7,8 +7,6 @@ import java.util.UUID;
 
 public interface ResellerRepository extends JpaRepository<Reseller, UUID> {
 
-    Reseller findByName(String name);
-    Reseller findByOrgNo(String orgNo);
     boolean existsByOrgNo(String orgNo);
     boolean existsByName(String name);
 

@@ -1,5 +1,6 @@
 package ivar.hogblom.crmbackend.crm.entity.customer;
 
+import ivar.hogblom.crmbackend.config.jpa.LocalDateEpochMillisConverter;
 import ivar.hogblom.crmbackend.crm.entity.contract.Contract;
 import jakarta.persistence.*;
 import lombok.*;
@@ -58,6 +59,7 @@ public class Customer {
     private String customerType;
 
     @Column(name = "created_at")
+    @Convert(converter = LocalDateEpochMillisConverter.class)
     private LocalDate createdAt;
 
     @Column(columnDefinition = "TEXT")

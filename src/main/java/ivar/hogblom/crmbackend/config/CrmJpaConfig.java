@@ -37,11 +37,20 @@ public class CrmJpaConfig {
         // Om du vill sätta explicit per DB kan detta göras senare
         // jpaProps.put("hibernate.dialect", "...");
 
+        // ✅ EXPLICIT SQLite-dialect (VIKTIGT vid routing datasource)
+        jpaProps.put(
+                "hibernate.dialect",
+                "org.hibernate.community.dialect.SQLiteDialect"
+        );
+
+
         jpaProps.put("hibernate.show_sql", false);
 
         return builder
                 .dataSource(dataSource)
-                .packages("ivar.hogblom.crmbackend.crm.entity")
+                .packages(
+                        "ivar.hogblom.crmbackend.crm.entity",
+                                        "ivar.hogblom.crmbackend.config.jpa")
                 .persistenceUnit("crm")
                 .properties(jpaProps)
                 .build();

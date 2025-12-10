@@ -10,11 +10,15 @@ import java.util.UUID;
 public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     Customer findByCompanyName(String companyName);
+
     Customer findByOrgNo(String orgNo);
+
     boolean existsByCompanyName(String companyName);
+
     boolean existsByOrgNo(String orgNo);
+
     boolean existsByOrgNoAndIdNot(String orgNo, UUID id);
+
     boolean existsByCompanyNameAndIdNot(String companyName, UUID id);
-
-
 }
+

@@ -1,5 +1,6 @@
 package ivar.hogblom.crmbackend.crm.entity.customer;
 
+import ivar.hogblom.crmbackend.config.jpa.LocalDateTimeEpochMillisConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 
 @Entity
 @Table(name = "customer_event")
@@ -20,14 +22,15 @@ public class CustomerEvent {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(name = "customer_id", nullable = false)
     private UUID customerId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "event_type", nullable = false)
     private CustomerEventType eventType;
 
-    @Column(nullable = false)
+    @Column(name = "event_ts", nullable = false)
+    @Convert(converter = LocalDateTimeEpochMillisConverter.class)
     private LocalDateTime eventTs;
 
     @Column(columnDefinition = "TEXT")

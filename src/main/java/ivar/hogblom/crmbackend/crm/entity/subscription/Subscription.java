@@ -1,5 +1,6 @@
 package ivar.hogblom.crmbackend.crm.entity.subscription;
 
+import ivar.hogblom.crmbackend.config.jpa.LocalDateEpochMillisConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -52,6 +53,7 @@ public class Subscription {
     private String supportContact;
 
     @Column(name = "created_at")
+    @Convert(converter = LocalDateEpochMillisConverter.class)
     private LocalDate createdAt;
 
     private String notes;
