@@ -29,16 +29,16 @@ public class DynamicDataSourceManager {
             );
         }
 
-        // 1️⃣ Bygg nyckeln EN gång
+        // 1️⃣ Bygg nyckeln EN gång, OBS! Förväxla ej den här med encryptionKey i DatabaseConnection. Den används enbart för att peka ut vilken databas (DataSource) som ska användas just nu.
         final String key = "conn_" + conn.getId();
 
-        // 2️⃣ Hämta eller skapa DataSource + initiera schema + registrera i routing
+        // 2️⃣ Hämta eller skapa (om conn inte finns i cachen) DataSource + initiera schema + registrera i routing
         cache.computeIfAbsent(conn.getId(), id -> {
 
             // Skapa SQLite DataSource
             DataSource created = sqliteDataSourceFactory.create(conn);
 
-            // Initiera schema (idempotent – körs bara första gången)
+            // Initiera schema (idempotent – körs bara första gången), om misslyckas kastar undantaget "Schema initialization failed".
             schemaInitializer.ensureSchema(created);
 
             // Registrera i routing
@@ -47,7 +47,7 @@ public class DynamicDataSourceManager {
             return created;
         });
 
-        // 3️⃣ Sätt aktuell datasource för tråden
+        // 3️⃣ Sätt aktuell datasource för tråden. OBS! Förväxla ej den här nyckeln med encryptionKey i DatabaseConnection.
         DynamicRoutingDataSource.setCurrentKey(key);
 
         // 4️⃣ Returnera dbKey (samma som används i token / frontend)

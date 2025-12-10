@@ -1,7 +1,6 @@
 package ivar.hogblom.crmbackend.system.service.db;
 
 import ivar.hogblom.crmbackend.datasource.DynamicDataSourceManager;
-import ivar.hogblom.crmbackend.datasource.SchemaInitializer;
 import ivar.hogblom.crmbackend.dto.db.DataSourceConfigDto;
 import ivar.hogblom.crmbackend.dto.db.DatabaseConnectionResponseDto;
 import ivar.hogblom.crmbackend.dto.db.DatasourceResponseDto;
@@ -11,11 +10,13 @@ import ivar.hogblom.crmbackend.system.entity.userEntityAndRole.UserEntity;
 import ivar.hogblom.crmbackend.system.repository.db.DatabaseConnectionRepository;
 import ivar.hogblom.crmbackend.system.repository.userEntityAndRole.UserEntityRepository;
 import ivar.hogblom.crmbackend.security.JwtTokenUtil;
+import ivar.hogblom.crmbackend.system.service.db.security.CryptoService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -29,7 +30,6 @@ public class DatabaseConnectionServiceImpl implements DatabaseConnectionService 
     private final DynamicDataSourceManager dataSourceManager;
     private final JwtTokenUtil jwtTokenUtil;
     private final UserEntityRepository userEntityRepository;
-    private final SchemaInitializer schemaInitializer;
 
 
     @Override
@@ -38,9 +38,10 @@ public class DatabaseConnectionServiceImpl implements DatabaseConnectionService 
             UserDetails principal
     ) {
         UserEntity owner = userEntityRepository.findByUsername(principal.getUsername())
-                .orElseThrow();
+                .orElseThrow(() -> new IllegalArgumentException("Problem with finding logged in user"));
 
         validate(dto);
+
 
         DatabaseConnection conn = DatabaseConnection.builder()
                 .type(dto.getType())
@@ -50,7 +51,6 @@ public class DatabaseConnectionServiceImpl implements DatabaseConnectionService 
                 .username(dto.getUsername())
                 .password(dto.getPassword())
                 .filePath(dto.getFilePath())
-                .encryptionKey(dto.getEncryptionKey())
                 .owner(owner)
                 .build();
 
@@ -135,12 +135,14 @@ public class DatabaseConnectionServiceImpl implements DatabaseConnectionService 
     private void validate(DataSourceConfigDto dto) {
         switch (dto.getType().toLowerCase()) {
 
-            case "sqlite", "sqlcipher" -> {
+            case "sqlite" -> {
                 if (dto.getFilePath() == null || dto.getFilePath().isBlank()) {
                     throw new IllegalArgumentException("SQLite requires filePath");
                 }
             }
 
+            /*
+            If the DynamicDatasourceFactory gets more implementations of server databases, use also this:
             case "postgres", "mysql", "mariadb" -> {
                 if (dto.getHost() == null || dto.getHost().isBlank()) {
                     throw new IllegalArgumentException("Host is required");
@@ -154,10 +156,43 @@ public class DatabaseConnectionServiceImpl implements DatabaseConnectionService 
                 if (dto.getUsername() == null || dto.getUsername().isBlank()) {
                     throw new IllegalArgumentException("Username is required");
                 }
-            }
+            }*/
 
             default -> throw new IllegalArgumentException("Unsupported database type: " + dto.getType());
         }
     }
 
 }
+
+// Om SQLCipher används, lägg till CryptoService i controller.
+//@Override
+//public DatabaseConnectionResponseDto create(
+//        DataSourceConfigDto dto,
+//        UserDetails principal
+//) {
+//    UserEntity owner = userEntityRepository.findByUsername(principal.getUsername())
+//            .orElseThrow(() -> new IllegalArgumentException("Problem with finding logged in user"));
+//
+//    validate(dto);
+//
+//    String encryptedKey =
+//            StringUtils.hasText(dto.getEncryptionKey())
+//                    ? cryptoService.encrypt(dto.getEncryptionKey())
+//                    : null;
+//
+//
+//    DatabaseConnection conn = DatabaseConnection.builder()
+//            .type(dto.getType())
+//            .host(dto.getHost())
+//            .port(dto.getPort())
+//            .databaseName(dto.getDatabase())
+//            .username(dto.getUsername())
+//            .password(dto.getPassword())
+//            .filePath(dto.getFilePath())
+//            .encryptionKey(encryptedKey)
+//            .owner(owner)
+//            .build();
+//
+//    DatabaseConnection saved = connectionRepository.save(conn);
+//    return map(saved);
+//}

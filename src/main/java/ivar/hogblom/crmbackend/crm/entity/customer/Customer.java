@@ -2,6 +2,7 @@ package ivar.hogblom.crmbackend.crm.entity.customer;
 
 import ivar.hogblom.crmbackend.config.jpa.LocalDateEpochMillisConverter;
 import ivar.hogblom.crmbackend.crm.entity.contract.Contract;
+import ivar.hogblom.crmbackend.system.service.db.security.EncryptedStringConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -36,14 +37,18 @@ public class Customer {
     private String orgNo;
 
     @Column(name = "contact_name")
+    @Convert(converter = EncryptedStringConverter.class)
     private String contactName;
 
     @Column(name = "contact_email")
+    @Convert(converter = EncryptedStringConverter.class)
     private String contactEmail;
 
     @Column(name = "contact_phone")
+    @Convert(converter = EncryptedStringConverter.class)
     private String contactPhone;
 
+    @Convert(converter = EncryptedStringConverter.class)
     private String address;
 
     private String city;
@@ -63,6 +68,7 @@ public class Customer {
     private LocalDate createdAt;
 
     @Column(columnDefinition = "TEXT")
+    @Convert(converter = EncryptedStringConverter.class)
     private String notes;
 
     @OneToMany(mappedBy = "customer")

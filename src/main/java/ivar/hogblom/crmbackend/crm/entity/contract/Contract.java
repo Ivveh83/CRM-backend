@@ -4,6 +4,7 @@ import ivar.hogblom.crmbackend.config.jpa.LocalDateEpochMillisConverter;
 import ivar.hogblom.crmbackend.crm.entity.customer.Customer;
 import ivar.hogblom.crmbackend.crm.entity.reseller.Reseller;
 import ivar.hogblom.crmbackend.crm.entity.subscription.Subscription;
+import ivar.hogblom.crmbackend.system.service.db.security.EncryptedStringConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -78,5 +79,6 @@ public class Contract {
     private List<LocalDate> renewalDates;
 
     @Column(columnDefinition = "TEXT")
+    @Convert(converter = EncryptedStringConverter.class)
     private String comment;
 }

@@ -1,6 +1,7 @@
 package ivar.hogblom.crmbackend.crm.entity.subscription;
 
 import ivar.hogblom.crmbackend.config.jpa.LocalDateEpochMillisConverter;
+import ivar.hogblom.crmbackend.system.service.db.security.EncryptedStringConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -31,6 +32,7 @@ public class Subscription {
     private String category;
 
     @Column(columnDefinition = "TEXT")
+    @Convert(converter = EncryptedStringConverter.class)
     private String description;
 
     @Column(name = "service_level")
@@ -50,11 +52,13 @@ public class Subscription {
     private Boolean active;
 
     @Column(name = "support_contact")
+    @Convert(converter = EncryptedStringConverter.class)
     private String supportContact;
 
     @Column(name = "created_at")
     @Convert(converter = LocalDateEpochMillisConverter.class)
     private LocalDate createdAt;
 
+    @Convert(converter = EncryptedStringConverter.class)
     private String notes;
 }

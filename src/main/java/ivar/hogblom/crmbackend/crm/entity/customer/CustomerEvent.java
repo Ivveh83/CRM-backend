@@ -1,6 +1,7 @@
 package ivar.hogblom.crmbackend.crm.entity.customer;
 
 import ivar.hogblom.crmbackend.config.jpa.LocalDateTimeEpochMillisConverter;
+import ivar.hogblom.crmbackend.system.service.db.security.EncryptedStringConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,6 +35,7 @@ public class CustomerEvent {
     private LocalDateTime eventTs;
 
     @Column(columnDefinition = "TEXT")
+    @Convert(converter = EncryptedStringConverter.class)
     private String detail;
 
     private String actor;  // användarnamn från auth

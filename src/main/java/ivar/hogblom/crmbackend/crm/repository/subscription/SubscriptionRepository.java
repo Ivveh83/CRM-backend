@@ -9,7 +9,6 @@ import java.util.UUID;
 @Repository
 public interface SubscriptionRepository extends JpaRepository<Subscription, UUID> {
 
-    Subscription findByName(String name);
     boolean existsByName(String name);
 
 }

@@ -28,7 +28,6 @@ public class LookupValue {
     @Column(name = "sort_order")
     private Integer sortOrder;
 
-
     @Column(nullable = false)
     private boolean active;
 }

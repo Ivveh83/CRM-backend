@@ -1,6 +1,7 @@
 package ivar.hogblom.crmbackend.system.entity.db;
 
 import ivar.hogblom.crmbackend.system.entity.userEntityAndRole.UserEntity;
+import ivar.hogblom.crmbackend.system.service.db.security.EncryptedStringConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,10 +27,12 @@ public class DatabaseConnection {
     private String host;
     private Integer port;
     private String databaseName;
+    @Convert(converter = EncryptedStringConverter.class)
     private String username;
+    @Convert(converter = EncryptedStringConverter.class)
     private String password;
     private String filePath;
-    private String encryptionKey;
+//    private String encryptionKey;
 
     // ägare - koppling till din UserEntity
     @ManyToOne(fetch = FetchType.LAZY)

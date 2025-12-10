@@ -1,6 +1,7 @@
 package ivar.hogblom.crmbackend.crm.entity.reseller;
 
 import ivar.hogblom.crmbackend.config.jpa.LocalDateEpochMillisConverter;
+import ivar.hogblom.crmbackend.system.service.db.security.EncryptedStringConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -35,15 +36,20 @@ public class Reseller {
     @Column(nullable = false)
     private boolean active;
 
+
+    @Convert(converter = EncryptedStringConverter.class)
     private String address;
 
     @Column(name = "contact_email")
+    @Convert(converter = EncryptedStringConverter.class)
     private String contactEmail;
 
     @Column(name = "contact_telephone")
+    @Convert(converter = EncryptedStringConverter.class)
     private String contactTelephone;
 
     @Column(name = "invoice_reference")
+    @Convert(converter = EncryptedStringConverter.class)
     private String invoiceReference;
 
     @Column(name = "created_at")
