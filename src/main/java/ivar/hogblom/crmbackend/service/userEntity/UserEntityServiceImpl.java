@@ -1,11 +1,11 @@
-package ivar.hogblom.crmbackend.system.service.userEntity;
+package ivar.hogblom.crmbackend.service.userEntity;
 
 import ivar.hogblom.crmbackend.dto.userEntity.*;
-import ivar.hogblom.crmbackend.system.entity.userEntityAndRole.Role;
-import ivar.hogblom.crmbackend.system.entity.userEntityAndRole.UserEntity;
-import ivar.hogblom.crmbackend.system.repository.db.DatabaseConnectionRepository;
-import ivar.hogblom.crmbackend.system.repository.userEntityAndRole.RoleRepository;
-import ivar.hogblom.crmbackend.system.repository.userEntityAndRole.UserEntityRepository;
+import ivar.hogblom.crmbackend.entity.userEntityAndRole.Role;
+import ivar.hogblom.crmbackend.entity.userEntityAndRole.UserEntity;
+import ivar.hogblom.crmbackend.repository.userEntityAndRole.RoleRepository;
+import ivar.hogblom.crmbackend.repository.userEntityAndRole.UserEntityRepository;
+import ivar.hogblom.crmbackend.service.userEntity.UserEntityService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -27,13 +27,13 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
-@Transactional(transactionManager = "systemTransactionManager")
+//@Transactional(transactionManager = "systemTransactionManager")
 public class UserEntityServiceImpl implements UserEntityService {
 
     private final RoleRepository roleRepository;
     private final UserEntityRepository userEntityRepository;
     private final PasswordEncoder passwordEncoder;
-    private final DatabaseConnectionRepository databaseConnectionRepository;
+//    private final DatabaseConnectionRepository databaseConnectionRepository;
 
     @Value("${PASSWORD_EXPORT_DIR}")
     private String exportDir;
@@ -46,13 +46,13 @@ public class UserEntityServiceImpl implements UserEntityService {
     public UserEntityServiceImpl(
             UserEntityRepository userEntityRepository,
             PasswordEncoder passwordEncoder,
-            RoleRepository roleRepository,
-            DatabaseConnectionRepository databaseConnectionRepository
+            RoleRepository roleRepository
+//            DatabaseConnectionRepository databaseConnectionRepository
             ) {
         this.userEntityRepository = userEntityRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
-        this.databaseConnectionRepository = databaseConnectionRepository;
+//        this.databaseConnectionRepository = databaseConnectionRepository;
     }
 
     @Override
@@ -220,11 +220,11 @@ public class UserEntityServiceImpl implements UserEntityService {
         if (!userEntityRepository.existsById(id)) {
             throw new EntityNotFoundException("User not found");
         }
-        if (databaseConnectionRepository.existsByOwnerId(id)) {
-            throw new IllegalStateException(
-                    "User owns database connections and cannot be deleted"
-            );
-        }
+//        if (databaseConnectionRepository.existsByOwnerId(id)) {
+//            throw new IllegalStateException(
+//                    "User owns database connections and cannot be deleted"
+//            );
+//        }
 
         userEntityRepository.deleteById(id);
     }
