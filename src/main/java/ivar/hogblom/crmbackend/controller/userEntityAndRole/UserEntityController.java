@@ -164,6 +164,29 @@ public class UserEntityController {
     }
 
     // -----------------------------------------------------
+    // 🔵 RESET FORGOTTEN PASSWORD (PUBLIC)
+    // -----------------------------------------------------
+    @Operation(
+            summary = "Reset forgotten password",
+            description = "Generates a new password for a user and exports it to a local file. " +
+                    "Always returns a neutral response to avoid user enumeration."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Password reset handled"),
+            @ApiResponse(responseCode = "400", description = "Invalid request")
+    })
+    @PostMapping("/reset-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resetPassword(
+            @Valid
+            @RequestBody
+            @NotNull(message = "Request body cannot be null")
+            PasswordResetRequest request
+    ) {
+        userEntityService.resetPasswordAndExport(request.username());
+    }
+
+    // -----------------------------------------------------
     // 🔴 REMOVE ROLE FROM USER (ADMIN)
     // -----------------------------------------------------
 

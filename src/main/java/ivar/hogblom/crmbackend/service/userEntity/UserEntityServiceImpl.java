@@ -1,10 +1,11 @@
-package ivar.hogblom.crmbackend.service.userEntity;
+package ivar.hogblom.crmbackend.system.service.userEntity;
 
 import ivar.hogblom.crmbackend.dto.userEntity.*;
-import ivar.hogblom.crmbackend.entity.userEntityAndRole.Role;
-import ivar.hogblom.crmbackend.entity.userEntityAndRole.UserEntity;
-import ivar.hogblom.crmbackend.repository.userEntityAndRole.RoleRepository;
-import ivar.hogblom.crmbackend.repository.userEntityAndRole.UserEntityRepository;
+import ivar.hogblom.crmbackend.system.entity.userEntityAndRole.Role;
+import ivar.hogblom.crmbackend.system.entity.userEntityAndRole.UserEntity;
+import ivar.hogblom.crmbackend.system.repository.db.DatabaseConnectionRepository;
+import ivar.hogblom.crmbackend.system.repository.userEntityAndRole.RoleRepository;
+import ivar.hogblom.crmbackend.system.repository.userEntityAndRole.UserEntityRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -12,25 +13,46 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
-@Transactional
+@Transactional(transactionManager = "systemTransactionManager")
 public class UserEntityServiceImpl implements UserEntityService {
 
     private final RoleRepository roleRepository;
     private final UserEntityRepository userEntityRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DatabaseConnectionRepository databaseConnectionRepository;
+
+    @Value("${PASSWORD_EXPORT_DIR}")
+    private String exportDir;
+
+    @Value("${PASSWORD_EXPORT_FILE}")
+    private String exportFile;
+
 
     @Autowired
     public UserEntityServiceImpl(
             UserEntityRepository userEntityRepository,
-            PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
+            PasswordEncoder passwordEncoder,
+            RoleRepository roleRepository,
+            DatabaseConnectionRepository databaseConnectionRepository
+            ) {
         this.userEntityRepository = userEntityRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
+        this.databaseConnectionRepository = databaseConnectionRepository;
     }
 
     @Override
@@ -47,13 +69,13 @@ public class UserEntityServiceImpl implements UserEntityService {
         userEntity.setEmail(userEntityRegistrationDto.email());
         userEntity.setPassword(passwordEncoder.encode(userEntityRegistrationDto.password()));
 
-        Role role = roleRepository.findByName("ROLE_ADMIN").get();
+        Role role = roleRepository.findByName("ROLE_USER")
+                .orElseThrow(() -> new IllegalStateException("ROLE_USER saknas i system-databasen"));
         userEntity.setRoles(List.of(role));
         userEntityRepository.save(userEntity);
     }
 
     @Override
-    @Transactional
     public void changePassword(ChangePasswordRequestDto dto) {
 
         UserEntity existingUser = userEntityRepository.findByUsername(dto.username())
@@ -70,6 +92,32 @@ public class UserEntityServiceImpl implements UserEntityService {
         existingUser.setPassword(passwordEncoder.encode(dto.newPassword()));
         userEntityRepository.save(existingUser);
     }
+
+    // -----------------------------------------------------
+    // RESET PASSWORD + EXPORT
+    // -----------------------------------------------------
+    @Override
+    public void resetPasswordAndExport(String username) {
+
+        // 1. Leta upp användaren (eller ignorera, beroende på behov)
+        UserEntity user = userEntityRepository.findByUsername(username)
+                .orElse(null);
+
+        // 2. Generera nytt lösenord
+        String newPassword = generatePassword();
+        System.out.println("New password: " + newPassword);
+
+        // 3. Om användaren finns: uppdatera hash
+        if (user != null) {
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userEntityRepository.save(user);
+        }
+
+        // 4. Exportera
+        exportPassword(newPassword);
+    }
+
+
     // ---------------------------------------------------------
     // GET ALL USERS
     // ---------------------------------------------------------
@@ -172,6 +220,12 @@ public class UserEntityServiceImpl implements UserEntityService {
         if (!userEntityRepository.existsById(id)) {
             throw new EntityNotFoundException("User not found");
         }
+        if (databaseConnectionRepository.existsByOwnerId(id)) {
+            throw new IllegalStateException(
+                    "User owns database connections and cannot be deleted"
+            );
+        }
+
         userEntityRepository.deleteById(id);
     }
 
@@ -208,5 +262,50 @@ public class UserEntityServiceImpl implements UserEntityService {
                 )
                 .build();
     }
+
+    // -----------------------------------------------------
+    // GENERERA LÖSENORD
+    // -----------------------------------------------------
+    private String generatePassword() {
+
+        int minLength = 10;
+        int maxLength = 16;
+
+// Slumpa längd
+        int length = ThreadLocalRandom.current().nextInt(minLength, maxLength + 1);
+
+// Bassträng (längre än maxLength!)
+        String base = UUID.randomUUID()
+                .toString()
+                .replace("-", "");
+
+// Ta slumpmässig längd, returnera
+        return base.substring(0, length);
+    }
+
+    // -----------------------------------------------------
+    // EXPORTERA
+    // -----------------------------------------------------
+    private void exportPassword(String password) {
+        try {
+
+            Path dir = Paths.get(exportDir);
+            Files.createDirectories(dir);
+
+            Path file = dir.resolve(exportFile);
+
+            Files.writeString(
+                    file,
+                    password,
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING
+            );
+
+        } catch (IOException e) {
+            throw new IllegalStateException("Kunde inte exportera lösenord", e);
+        }
+    }
+
 }
 

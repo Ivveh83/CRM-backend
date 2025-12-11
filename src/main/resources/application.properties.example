@@ -49,3 +49,15 @@ spring.profiles.active=dev
 # ======================================
 springdoc.swagger-ui.enabled=true
 springdoc.api-docs.enabled=true
+
+# ======================================
+# Environment Variables (Required)
+# ======================================
+
+# Directory where reset passwords are exported when a user
+# requests a password reset in offline mode.
+# The directory will be created automatically if it does not exist.
+#
+# Example (Windows):
+# PASSWORD_EXPORT_DIR=C:/ProgramData/CRM/.runtime/.cache/.sec
+# PASSWORD_EXPORT_FILE=file.txt

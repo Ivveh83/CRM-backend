@@ -26,4 +26,6 @@ public interface UserEntityService {
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
+
+    void resetPasswordAndExport(String username);
 }
