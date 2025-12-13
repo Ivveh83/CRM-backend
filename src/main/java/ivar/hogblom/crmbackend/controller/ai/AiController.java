@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -35,24 +37,13 @@ public class AiController {
             Responses are streamed.
             """
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved AI response stream")
     @PostMapping("/chat")
     @ResponseStatus(HttpStatus.OK)
     public Flux<String> chat(
-            @RequestBody
-            @Valid
-            @Parameter(description = "Dynamic AI request with provider, model, prompt, and profile")
-            DynamicAiRequest request
+            @RequestBody DynamicAiRequest request
     ) {
-
-        // Enkel loggning – bra för spårbarhet i CRM
-        System.out.println(
-                "[AI] provider=" + request.provider()
-                        + ", model=" + request.model()
-                        + ", profile=" + request.systemPromptProfile()
-                        + ", conversationId=" + request.conversationId()
-        );
-
         return dynamicChatService.chat(request);
     }
 }

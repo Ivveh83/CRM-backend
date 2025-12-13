@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -29,17 +30,19 @@ public class SecurityConfig {
     private final JwtAccessDeniedHandler accessDeniedHandler;
     private final JwtRequestFilter jwtRequestFilter;
     private final DatabaseRoutingFilter databaseRoutingFilter;
+    private final AiInternalAuthorizationFilter aiInternalAuthorizationFilter;
 
     @Autowired
     public SecurityConfig(
             JwtRequestFilter jwtRequestFilter,
             JwtAuthEntryPoint authEntryPoint,
             JwtAccessDeniedHandler accessDeniedHandler,
-            DatabaseRoutingFilter databaseRoutingFilter) {
+            DatabaseRoutingFilter databaseRoutingFilter, AiInternalAuthorizationFilter aiInternalAuthorizationFilter) {
         this.jwtRequestFilter = jwtRequestFilter;
         this.authEntryPoint = authEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
         this.databaseRoutingFilter = databaseRoutingFilter;
+        this.aiInternalAuthorizationFilter = aiInternalAuthorizationFilter;
     }
 
     @Bean
@@ -59,10 +62,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/user/register", "/api/user/reset-password").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/ai/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(databaseRoutingFilter, JwtRequestFilter.class);
+                .addFilterAfter(databaseRoutingFilter, JwtRequestFilter.class)
+                .addFilterBefore(aiInternalAuthorizationFilter, AuthorizationFilter.class);
+
 
         return http.build();
     }

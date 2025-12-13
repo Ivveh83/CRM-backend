@@ -71,27 +71,26 @@ public class DynamicChatServiceImpl implements DynamicChatService {
 
     @Override
     public Flux<String> chat(DynamicAiRequest dto) {
-
-        //1. Ställer in chat-klienten (ollama, openAI, google etc.)
         ChatClient client = selectClient(dto.provider());
-
-        //2. Ställer in vilken roll som ska användas
         String systemPrompt = promptService.getPrompt(dto.systemPromptProfile());
+        boolean allowTools = "ANALYSIS".equals(dto.systemPromptProfile());
 
-        //3. Ger endast analys-rollen tillgång till tool-calling
-        boolean allowTools = dto.systemPromptProfile().equals("ANALYSIS");
-
-        return client.prompt()
-                .system(systemPrompt)
-                .user(dto.prompt())
-                .tools(allowTools ? readTools : null)
-                .options(buildOptions(dto))
-                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, dto.conversationId()))
-                .stream()
-                .chatResponse()
-                .mapNotNull(r -> r.getResult().getOutput().getText())
-                .onErrorResume(ex -> fallback(dto));
+        try {
+            return client.prompt()
+                    .system(systemPrompt)
+                    .user(dto.prompt())
+                    .tools(allowTools ? readTools : null)
+                    .options(buildOptions(dto))
+                    .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, dto.conversationId()))
+                    .stream()
+                    .content();
+        } catch (Exception ex) {
+            // om fallback(dto) idag returnerar Flux<String>, gör en separat "blocking fallback"
+            return fallback(dto);
+        }
     }
+
+
 
     // -----------------------------------------------------
     // Provider router (dynamisk & säker)
@@ -141,7 +140,7 @@ public class DynamicChatServiceImpl implements DynamicChatService {
                         .build())
                 .stream()
                 .chatResponse()
-                .map(r -> r.getResult().getOutput().getText());
+                .mapNotNull(r -> r.getResult().getOutput().getText());
     }
 
     // -----------------------------------------------------

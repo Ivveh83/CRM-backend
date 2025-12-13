@@ -23,36 +23,42 @@ public class AppToolCallingRead {
     private final CustomerService customerService;
 
     @Autowired
-    public AppToolCallingRead(ContractEventService contractEventService, @Qualifier("mainContractService")ContractService contractService, CustomerService customerService) {
+    public AppToolCallingRead(ContractEventService contractEventService,
+                              @Qualifier("mainContractService")ContractService contractService,
+                              CustomerService customerService) {
         this.contractEventService = contractEventService;
         this.contractService = contractService;
         this.customerService = customerService;
     }
 
-    @Tool(description = "Search for all events concerning a specific contract")
+    @Tool(description = "Retrieve all contract events for a specific contract.")
     public String getContractEvents(UUID contractId) {
         try {
+            System.out.println("AI try to receive contract events for contract " + contractId);
             List<ContractEventDto> list = contractEventService.getEventsForContract(contractId);
+            System.out.println("List of ContractEventDto: " + list.toArray().length);
             return "Successfully found these events: " + list;
         } catch (Exception ex) {
             return "Error by searching due to " +  ex.getMessage();
         }
     }
 
-    @Tool(description = "Search for all contracts")
+    @Tool(description = "Retrieve all contracts as structured data")
     public String getAllContracts() {
         try {
             List<ContractResponseDto> list = contractService.findAll();
+            System.out.println("List of ContractResponseDto: " + list.toArray().length);
             return "Successfully found these contracts: " + list;
         } catch (Exception ex) {
             return "Error by searching due to " +  ex.getMessage();
         }
     }
 
-    @Tool(description = "Search for all customers")
+    @Tool(description = "Retrieve all customers as structured data")
     public String getAllCustomers() {
         try {
             List<CustomerResponseDto> list = customerService.findAll();
+            System.out.println("List of CustomerResponseDto: " + list.toArray().length);
             return "Successfully found these customers: " + list;
         } catch (Exception ex) {
             return "Error by searching due to " +  ex.getMessage();

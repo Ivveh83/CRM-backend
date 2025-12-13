@@ -8,8 +8,11 @@ package ivar.hogblom.crmbackend.dto.ai;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
+
+import java.util.UUID;
 
 @Builder
 @Schema(description = "Dynamic AI request supporting multiple providers, roles, and models")
@@ -37,6 +40,8 @@ public record DynamicAiRequest(
         @Schema(description = "Conversation ID for shared chat memory",
                 example = "conv-123")
         String conversationId,
+
+        @NotNull String crmDatabaseId,
 
         @Schema(description = "Optional temperature override", example = "0.3")
         Double temperature,
