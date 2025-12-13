@@ -54,6 +54,11 @@ public class CustomerServiceImpl implements CustomerService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<CustomerResponseDto> findAll() {
+        return customerRepository.findAll().stream().map(this::toResponseDto).collect(Collectors.toList());
+    }
+
     public CustomerResponseDto findById(UUID id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found: " + id));

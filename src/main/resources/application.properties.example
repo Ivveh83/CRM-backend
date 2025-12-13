@@ -49,3 +49,36 @@ spring.profiles.active=dev
 # ======================================
 springdoc.swagger-ui.enabled=true
 springdoc.api-docs.enabled=true
+
+# ===============================
+# = AI Provider Configuration
+# ===============================
+
+# All the keys below have to be set for the app to run. Does not have to be a real API, just a string as DUMMY is
+# sufficient. Of course, to use the AI provider you have to set a valid key.
+
+# ---- OpenAI ----
+spring.ai.openai.api-key=${OPENAI_KEY:}
+spring.ai.openai.chat.options.model=gpt-4.1-mini
+
+# ---- Google GenAI (Gemini) ----
+spring.ai.google.genai.api-key=${GOOGLE_API_KEY:}
+spring.ai.google.genai.project-id=${GOOGLE_PROJECT_ID:}
+spring.ai.google.genai.location=${GOOGLE_GENAI_LOCATION:}
+spring.ai.google.genai.chat.options.model=gemini-1.5-flash
+
+# ---- DeepSeek ----
+spring.ai.deepseek.api-key=${DEEPSEEK_KEY:}
+spring.ai.deepseek.chat.options.model=deepseek-chat
+
+# ---- Anthropic (Claude) ----
+spring.ai.anthropic.api-key=${ANTHROPIC_KEY:}
+spring.ai.anthropic.chat.options.model=claude-3-5-sonnet-latest
+
+# ---- HuggingFace ----
+spring.ai.huggingface.api-key=${HF_API_KEY:}
+spring.ai.huggingface.chat.options.model=meta-llama/Llama-3.2-3B-Instruct
+
+# ---- Ollama (lokal)—ingen API-nyckel behövs ----
+spring.ai.ollama.base-url=http://localhost:11434
+spring.ai.ollama.chat.options.model=gemma3:4b

@@ -12,6 +12,7 @@ public interface CustomerService {
 
     List<CustomerListResponseDto> findAllCustomersForCustomerListComponent();
     List<CustomerForContractComponentsDto> findAllCustomersForContractComponents();
+    List<CustomerResponseDto> findAll();
     void createCustomer(CustomerRequestDto customerRequestDto);
     CustomerResponseDto findById(UUID id);
     void updateCustomer(UUID id, CustomerRequestDto customerRequestDto);
