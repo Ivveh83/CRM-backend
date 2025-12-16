@@ -20,8 +20,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequireCrmDatabase
-@Service
 @Transactional(transactionManager = "crmTransactionManager")
+@Service("mainCustomerService")
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
@@ -54,6 +54,11 @@ public class CustomerServiceImpl implements CustomerService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<CustomerResponseDto> findAll() {
+        return customerRepository.findAll().stream().map(this::toResponseDto).collect(Collectors.toList());
+    }
+
     public CustomerResponseDto findById(UUID id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found: " + id));
@@ -78,7 +83,6 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    
     public void updateCustomer(UUID id, CustomerRequestDto request) {
 
         // 1. Hämta befintlig kund

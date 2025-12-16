@@ -12,6 +12,7 @@ import ivar.hogblom.crmbackend.dto.customer.CustomerResponseDto;
 import ivar.hogblom.crmbackend.crm.service.customer.CustomerService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -30,7 +31,7 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @Autowired
-    public CustomerController(CustomerService customerService) {
+    public CustomerController(@Qualifier("validatingCustomerService") CustomerService customerService) {
         this.customerService = customerService;
     }
 

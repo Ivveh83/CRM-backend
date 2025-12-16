@@ -13,8 +13,8 @@ public interface CustomerService {
     List<CustomerListResponseDto> findAllCustomersForCustomerListComponent();
     List<CustomerForContractComponentsDto> findAllCustomersForContractComponents();
     void createCustomer(CustomerRequestDto customerRequestDto);
+    List<CustomerResponseDto> findAll();
     CustomerResponseDto findById(UUID id);
     void updateCustomer(UUID id, CustomerRequestDto customerRequestDto);
     void deleteCustomer(UUID id);
-
 }

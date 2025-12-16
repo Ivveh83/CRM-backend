@@ -20,8 +20,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequireCrmDatabase
-@Service
 @Transactional(transactionManager = "crmTransactionManager")
+@Service("mainResellerService")
 public class ResellerServiceImpl implements ResellerService {
 
     final private ResellerRepository resellerRepository;
@@ -92,6 +92,19 @@ public class ResellerServiceImpl implements ResellerService {
         // 1. Hämta befintlig återförsäljare
         Reseller existing = resellerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reseller not found: " + id));
+
+        boolean orgNoExists = resellerRepository.existsByOrgNo(request.orgNo());
+        if (orgNoExists && !existing.getOrgNo().equals(request.orgNo())) {
+            throw new IllegalArgumentException(
+                    "A reseller with orgNo " + request.orgNo() + " already exists."
+            );
+        }
+        boolean nameExists = resellerRepository.existsByName(request.name());
+        if (nameExists && !existing.getName().equals(request.name())) {
+            throw new IllegalArgumentException(
+                    "A reseller with name " + request.name() + " already exists."
+            );
+        }
 
         // 2. Klona BEFORE
         Reseller oldCopy = resellerCloneUtil.clone(existing);

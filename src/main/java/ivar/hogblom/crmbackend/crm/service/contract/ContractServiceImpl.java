@@ -19,6 +19,7 @@ import ivar.hogblom.crmbackend.crm.repository.subscription.SubscriptionRepositor
 import ivar.hogblom.crmbackend.crm.service.contract.dto.ContractPriceChange;
 import ivar.hogblom.crmbackend.util.ContractCloneUtil;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,18 +75,18 @@ public class ContractServiceImpl implements ContractService {
         //validateContractDates(dto);
 
         Customer customer = customerRepository.findById(dto.customerId())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
 
         List<UUID> resellerIds = dto.resellerIds();
         List<Reseller> resellers = resellerRepository.findAllById(resellerIds);
         if (resellers.size() != resellerIds.size()) {
-            throw new IllegalArgumentException("One or more reseller IDs do not exist");
+            throw new ValidationException("One or more reseller IDs do not exist");
         }
 
         List<UUID> subscriptionIds = dto.subscriptionIds();
         List<Subscription> subscriptions = subscriptionRepository.findAllById(subscriptionIds);
         if (subscriptions.size() != subscriptionIds.size()) {
-            throw new IllegalArgumentException("One or more subscription IDs do not exist");
+            throw new ValidationException("One or more subscription IDs do not exist");
         }
 
         Contract contract = toEntity(dto, customer, resellers, subscriptions);

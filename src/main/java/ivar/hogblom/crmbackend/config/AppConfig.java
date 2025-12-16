@@ -15,19 +15,8 @@ public class AppConfig {
     @Bean
     public ChatMemory chatMemory(ChatMemoryRepository chatMemoryRepository){
         return MessageWindowChatMemory.builder()
-                .maxMessages(10)
+                .maxMessages(30) //Request and Response constitute 2 messages
                 .chatMemoryRepository(chatMemoryRepository)
                 .build();
     }
-
-//    @Bean
-//    public ChatMemoryRepository chatMemoryRepository(JdbcTemplate jdbcTemplate){
-//        return JdbcChatMemoryRepository.builder()
-//                .jdbcTemplate(jdbcTemplate)
-//                .dialect(new MysqlChatMemoryRepositoryDialect())
-//                .build();
-//
-//
-//    }
-
 }

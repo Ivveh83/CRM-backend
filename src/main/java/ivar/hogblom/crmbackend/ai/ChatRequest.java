@@ -10,6 +10,10 @@ import lombok.Builder;
 @Schema(description = "Dynamic AI request supporting multiple providers, roles, and models")
 public record ChatRequest(
 
+    @NotEmpty
+    @Schema(description = "AI provider to use", example = "openai")
+    String provider,
+
     @Schema(description = "Optional model override. If null, provider default is used",
             example = "gpt-4.1-mini")
     String model,
@@ -29,9 +33,6 @@ public record ChatRequest(
             example = "conv-123")
     String conversationId,
 
-    @NotNull
-    String crmDatabaseId,
-
     @Schema(description = "Optional temperature override", example = "0.3")
     Double temperature,
 
@@ -39,6 +40,9 @@ public record ChatRequest(
     Integer maxTokens,
 
     @Schema(description = "Optional top-p override", example = "0.95")
-    Double topP
+    Double topP,
+
+    @Schema(description = "Optional top-k override", example = "0.95")
+    Integer topK
             )
     {}
