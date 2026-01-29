@@ -10,7 +10,7 @@
     </parent>
     <groupId>ivar.hogblom</groupId>
     <artifactId>CRM-backend</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>CRM-backend</name>
     <description>CRM-backend</description>
     <url/>

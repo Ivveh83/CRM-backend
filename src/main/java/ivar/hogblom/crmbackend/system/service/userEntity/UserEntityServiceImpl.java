@@ -6,7 +6,6 @@ import ivar.hogblom.crmbackend.system.entity.userEntityAndRole.UserEntity;
 import ivar.hogblom.crmbackend.system.repository.db.DatabaseConnectionRepository;
 import ivar.hogblom.crmbackend.system.repository.userEntityAndRole.RoleRepository;
 import ivar.hogblom.crmbackend.system.repository.userEntityAndRole.UserEntityRepository;
-import ivar.hogblom.crmbackend.service.userEntity.UserEntityService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -35,6 +34,13 @@ public class UserEntityServiceImpl implements UserEntityService {
     private final UserEntityRepository userEntityRepository;
     private final PasswordEncoder passwordEncoder;
     private final DatabaseConnectionRepository databaseConnectionRepository;
+
+
+    @Value("${PASSWORD_EXPORT_DIR}")
+    private String exportDir;
+
+    @Value("${PASSWORD_EXPORT_FILE}")
+    private String exportFile;
 
     @Autowired
     public UserEntityServiceImpl(
@@ -67,7 +73,7 @@ public class UserEntityServiceImpl implements UserEntityService {
     }
 
     @Override
-    @Transactional
+    @Transactional("systemTransactionManager")
     public void changePassword(ChangePasswordRequestDto dto) {
 
         UserEntity existingUser = userEntityRepository.findByUsername(dto.username())
