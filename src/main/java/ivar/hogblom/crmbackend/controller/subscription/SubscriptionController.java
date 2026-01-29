@@ -9,7 +9,7 @@ import ivar.hogblom.crmbackend.dto.subscription.SubscriptionActiveUpdateDto;
 import ivar.hogblom.crmbackend.dto.subscription.SubscriptionForContractComponentsDto;
 import ivar.hogblom.crmbackend.dto.subscription.SubscriptionRequestDto;
 import ivar.hogblom.crmbackend.dto.subscription.SubscriptionResponseDto;
-import ivar.hogblom.crmbackend.service.subscription.SubscriptionService;
+import ivar.hogblom.crmbackend.crm.service.subscription.SubscriptionService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -28,15 +28,18 @@ public class SecurityConfig {
     private final JwtAuthEntryPoint authEntryPoint;
     private final JwtAccessDeniedHandler accessDeniedHandler;
     private final JwtRequestFilter jwtRequestFilter;
+    private final DatabaseRoutingFilter databaseRoutingFilter;
 
     @Autowired
     public SecurityConfig(
             JwtRequestFilter jwtRequestFilter,
             JwtAuthEntryPoint authEntryPoint,
-            JwtAccessDeniedHandler accessDeniedHandler) {
+            JwtAccessDeniedHandler accessDeniedHandler,
+            DatabaseRoutingFilter databaseRoutingFilter) {
         this.jwtRequestFilter = jwtRequestFilter;
         this.authEntryPoint = authEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
+        this.databaseRoutingFilter = databaseRoutingFilter;
     }
 
     @Bean
@@ -53,12 +56,29 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // 🔓 Frontend
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/favicon.ico",
+                                "/assets/**"
+                        ).permitAll()
+
+                        // 🔓 Auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/user/register", "/api/user/reset-password").permitAll()
+
+                        // 🔓 Swagger
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .anyRequest().authenticated()
+
+                        // 🔐 API
+                        .requestMatchers("/api/**").authenticated()
+
+                        // 🔓 Everything else
+                        .anyRequest().permitAll()
                 )
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(databaseRoutingFilter, JwtRequestFilter.class);
 
         return http.build();
     }

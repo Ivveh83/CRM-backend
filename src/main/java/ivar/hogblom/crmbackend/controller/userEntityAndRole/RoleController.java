@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import ivar.hogblom.crmbackend.dto.role.RoleRequestDto;
 import ivar.hogblom.crmbackend.dto.role.RoleResponseDto;
-import ivar.hogblom.crmbackend.service.role.RoleService;
+import ivar.hogblom.crmbackend.system.service.role.RoleService;
 
 import jakarta.validation.Valid;
 

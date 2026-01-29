@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import ivar.hogblom.crmbackend.dto.auth.AuthRequestDto;
 import ivar.hogblom.crmbackend.dto.auth.AuthResponseDto;
-import ivar.hogblom.crmbackend.service.auth.AuthService;
+import ivar.hogblom.crmbackend.system.service.auth.AuthService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;

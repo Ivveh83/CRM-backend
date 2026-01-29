@@ -1,0 +1,20 @@
+package ivar.hogblom.crmbackend.crm.repository.customer;
+
+import ivar.hogblom.crmbackend.crm.entity.customer.Customer;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.UUID;
+
+@Repository
+public interface CustomerRepository extends JpaRepository<Customer, UUID> {
+
+    boolean existsByCompanyName(String companyName);
+
+    boolean existsByOrgNo(String orgNo);
+
+    boolean existsByOrgNoAndIdNot(String orgNo, UUID id);
+
+    boolean existsByCompanyNameAndIdNot(String companyName, UUID id);
+}
+

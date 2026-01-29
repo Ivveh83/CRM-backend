@@ -9,9 +9,10 @@ import ivar.hogblom.crmbackend.dto.reseller.ResellerActiveUpdateDto;
 import ivar.hogblom.crmbackend.dto.reseller.ResellerForContractComponentsDto;
 import ivar.hogblom.crmbackend.dto.reseller.ResellerRequestDto;
 import ivar.hogblom.crmbackend.dto.reseller.ResellerResponseDto;
-import ivar.hogblom.crmbackend.service.reseller.ResellerService;
+import ivar.hogblom.crmbackend.crm.service.reseller.ResellerService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -30,7 +31,7 @@ public class ResellerController {
     private final ResellerService resellerService;
 
     @Autowired
-    public ResellerController(ResellerService resellerService) {
+    public ResellerController(@Qualifier("validatingResellerService") ResellerService resellerService) {
         this.resellerService = resellerService;
     }
 

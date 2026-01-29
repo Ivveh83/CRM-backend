@@ -1,7 +1,7 @@
 package ivar.hogblom.crmbackend.controller.reseller;
 
 import ivar.hogblom.crmbackend.dto.reseller.ResellerEventDto;
-import ivar.hogblom.crmbackend.service.reseller.ResellerEventService;
+import ivar.hogblom.crmbackend.crm.service.reseller.ResellerEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

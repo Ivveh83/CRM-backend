@@ -1,7 +1,7 @@
 package ivar.hogblom.crmbackend.controller.contract;
 
 import ivar.hogblom.crmbackend.dto.contract.ContractEventDto;
-import ivar.hogblom.crmbackend.service.contract.ContractEventService;
+import ivar.hogblom.crmbackend.crm.service.contract.ContractEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

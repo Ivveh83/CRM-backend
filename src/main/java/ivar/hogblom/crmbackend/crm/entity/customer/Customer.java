@@ -1,0 +1,77 @@
+package ivar.hogblom.crmbackend.crm.entity.customer;
+
+import ivar.hogblom.crmbackend.config.jpa.LocalDateEpochMillisConverter;
+import ivar.hogblom.crmbackend.crm.entity.contract.Contract;
+import ivar.hogblom.crmbackend.system.service.db.security.EncryptedStringConverter;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+
+@Entity
+@Table(name = "customers")
+public class Customer {
+
+    @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME) // UUIDv7
+    private UUID id;
+
+    // ⬅ Required-fält
+    @Column(name = "company_name", nullable = false, unique = true)
+    private String companyName;
+
+    // ⬅ Required-fält
+    @Column(name = "org_no", nullable = false, unique = true)
+    private String orgNo;
+
+    @Column(name = "contact_name")
+    @Convert(converter = EncryptedStringConverter.class)
+    private String contactName;
+
+    @Column(name = "contact_email")
+    @Convert(converter = EncryptedStringConverter.class)
+    private String contactEmail;
+
+    @Column(name = "contact_phone")
+    @Convert(converter = EncryptedStringConverter.class)
+    private String contactPhone;
+
+    @Convert(converter = EncryptedStringConverter.class)
+    private String address;
+
+    private String city;
+
+    @Column(name = "zip_code")
+    private String zipCode;
+
+    private String country;
+
+    private String industry;
+
+    @Column(name = "customer_type")
+    private String customerType;
+
+    @Column(name = "created_at")
+    @Convert(converter = LocalDateEpochMillisConverter.class)
+    private LocalDate createdAt;
+
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = EncryptedStringConverter.class)
+    private String notes;
+
+    @OneToMany(mappedBy = "customer")
+    private List<Contract> contracts = new ArrayList<>();
+
+}

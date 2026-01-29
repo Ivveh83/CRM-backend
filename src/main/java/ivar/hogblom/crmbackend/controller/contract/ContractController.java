@@ -10,7 +10,7 @@ import ivar.hogblom.crmbackend.dto.contract.ContractActiveUpdateDto;
 import ivar.hogblom.crmbackend.dto.contract.ContractRenewalDto;
 import ivar.hogblom.crmbackend.dto.contract.ContractResponseDto;
 import ivar.hogblom.crmbackend.dto.contract.ContractRequestDto;
-import ivar.hogblom.crmbackend.service.contract.ContractService;
+import ivar.hogblom.crmbackend.crm.service.contract.ContractService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

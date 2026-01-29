@@ -1,0 +1,228 @@
+package ivar.hogblom.crmbackend.crm.service.reseller;
+
+import ivar.hogblom.crmbackend.crm.security.RequireCrmDatabase;
+import ivar.hogblom.crmbackend.dto.reseller.ResellerForContractComponentsDto;
+import ivar.hogblom.crmbackend.dto.reseller.ResellerRequestDto;
+import ivar.hogblom.crmbackend.dto.reseller.ResellerResponseDto;
+import ivar.hogblom.crmbackend.crm.entity.reseller.Reseller;
+import ivar.hogblom.crmbackend.crm.repository.reseller.ResellerRepository;
+import ivar.hogblom.crmbackend.crm.service.contract.ContractEventService;
+import ivar.hogblom.crmbackend.crm.service.contract.ContractService;
+import ivar.hogblom.crmbackend.util.ResellerCloneUtil;
+import ivar.hogblom.crmbackend.util.ResellerDiffUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@RequireCrmDatabase
+@Transactional(transactionManager = "crmTransactionManager")
+@Service("mainResellerService")
+public class ResellerServiceImpl implements ResellerService {
+
+    final private ResellerRepository resellerRepository;
+    final private ContractEventService contractEventService;
+    final private ContractService contractService;
+    final private ResellerCloneUtil resellerCloneUtil;
+    final private ResellerDiffUtil resellerDiffUtil;
+    private final ResellerEventService resellerEventService;
+
+    @Autowired
+    public ResellerServiceImpl(ResellerRepository resellerRepository, ContractEventService contractEventService, @Qualifier("mainContractService")ContractService contractService, ResellerCloneUtil resellerCloneUtil, ResellerDiffUtil resellerDiffUtil, ResellerEventService resellerEventService) {
+        this.resellerRepository = resellerRepository;
+        this.contractEventService = contractEventService;
+        this.contractService = contractService;
+        this.resellerCloneUtil = resellerCloneUtil;
+        this.resellerDiffUtil = resellerDiffUtil;
+        this.resellerEventService = resellerEventService;
+    }
+
+    @Override
+    public List<ResellerResponseDto> findAllResellers() {
+        return resellerRepository.findAll()
+                .stream()
+                .map(this::toResellerResponseDto)
+                .toList();
+    }
+
+    @Override
+    public List<ResellerForContractComponentsDto> findAllResellersForContractComponents() {
+        return resellerRepository.findAll().stream()
+                .map(this::toResellerForContractComponentsDto)
+                .collect(Collectors.toList());
+    }
+
+    public ResellerResponseDto findById(UUID id) {
+        Reseller reseller = resellerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reseller not found with id: " + id));
+
+        return toResellerResponseDto(reseller);
+    }
+
+    
+    @Override
+    public void createReseller(ResellerRequestDto request) {
+        boolean orgNoExists = resellerRepository.existsByOrgNo(request.orgNo());
+        if (orgNoExists) {
+            throw new IllegalArgumentException(
+                    "A reseller with orgNo " + request.orgNo() + " already exists."
+            );
+        }
+        boolean nameExists = resellerRepository.existsByName(request.name());
+        if (nameExists) {
+            throw new IllegalArgumentException(
+                    "A reseller with name " + request.name() + " already exists."
+            );
+        }
+
+        Reseller reseller = toEntity(request);
+        Reseller createdReseller = resellerRepository.save(reseller);
+
+        resellerEventService.logResellerCreated(createdReseller);
+    }
+
+    @Override
+    
+    public void updateReseller(UUID id, ResellerRequestDto request) {
+
+        // 1. Hämta befintlig återförsäljare
+        Reseller existing = resellerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reseller not found: " + id));
+
+        boolean orgNoExists = resellerRepository.existsByOrgNo(request.orgNo());
+        if (orgNoExists && !existing.getOrgNo().equals(request.orgNo())) {
+            throw new IllegalArgumentException(
+                    "A reseller with orgNo " + request.orgNo() + " already exists."
+            );
+        }
+        boolean nameExists = resellerRepository.existsByName(request.name());
+        if (nameExists && !existing.getName().equals(request.name())) {
+            throw new IllegalArgumentException(
+                    "A reseller with name " + request.name() + " already exists."
+            );
+        }
+
+        // 2. Klona BEFORE
+        Reseller oldCopy = resellerCloneUtil.clone(existing);
+
+        // 3. Uppdatera entity från DTO, ej active
+        existing.setName(request.name());
+        existing.setOrgNo(request.orgNo());
+        existing.setAddress(request.address());
+        existing.setContactEmail(request.contactEmail());
+        existing.setContactTelephone(request.contactTelephone());
+        existing.setInvoiceReference(request.invoiceReference());
+        existing.setCreatedAt(request.createdAt());
+
+        // 4. Spara AFTER
+        Reseller updated = resellerRepository.save(existing);
+
+        // 5. Diffa återförsäljaren
+        List<String> diffs = resellerDiffUtil.diff(oldCopy, updated);
+
+        // 6. Låt ContractService hantera kontrakten + eventlogg
+        contractService.handleResellerUpdated(oldCopy, updated, diffs);
+
+        // 7. Låt resellerEventService hantera eventlogg
+        resellerEventService.logResellerUpdated(updated, diffs);
+    }
+
+    @Override
+    
+    public void deleteReseller(UUID id) {
+
+        Reseller existing = resellerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reseller not found: " + id));
+
+        // 1. Clone BEFORE deletion (for event logging)
+        Reseller clonedReseller = resellerCloneUtil.clone(existing);
+
+        // 2. Let ContractService handle ALL logic regarding affected contracts
+        contractService.handleResellerDeleted(clonedReseller, existing);
+
+        // 3. Log deletion as a ResellerEvent. Transactional (Rollback if something goes wrong)
+
+        resellerEventService.logResellerDeleted(clonedReseller);
+
+        // 4. Finally delete the reseller itself, transactional
+        resellerRepository.delete(existing);
+    }
+
+// ---------------------------------------------------------
+// UPDATE ACTIVE
+// ---------------------------------------------------------
+    @Override
+    
+    public void updateResellerActive(UUID id, boolean active) {
+
+        Reseller reseller = resellerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reseller not found with id: " + id));
+
+        reseller.setActive(active);
+
+        Reseller updated = resellerRepository.save(reseller);
+
+        // Låt ContractEventService hantera sin logg
+        contractEventService.logResellerActiveUpdate(updated);
+
+        //Låt ResellerEventService hantera sin logg
+        if (updated.isActive()) {
+            resellerEventService.logResellerReactivated(updated);
+        }else {
+            resellerEventService.logResellerPaused(updated);
+        }
+    }
+
+
+    private ResellerResponseDto toResellerResponseDto(Reseller r) {
+
+        if (r == null) {
+            return null;
+        }
+        return ResellerResponseDto.builder()
+                .id(r.getId())
+                .name(r.getName())
+                .orgNo(r.getOrgNo())
+                .active(r.isActive())
+                .address(r.getAddress())
+                .contactEmail(r.getContactEmail())
+                .contactTelephone(r.getContactTelephone())
+                .invoiceReference(r.getInvoiceReference())
+                .createdAt(r.getCreatedAt())
+                .build();
+    }
+
+    private ResellerForContractComponentsDto toResellerForContractComponentsDto(Reseller r) {
+
+        if (r == null) {
+            return null;
+        }
+
+        return ResellerForContractComponentsDto.builder()
+                .id(r.getId())
+                .name(r.getName())
+                .orgNo(r.getOrgNo())
+                .active(r.isActive())
+                .build();
+    }
+
+    private Reseller toEntity(ResellerRequestDto r) {
+        if (r == null) {
+            return null;
+        }
+        return Reseller.builder()
+            .name(r.name())
+            .orgNo(r.orgNo())
+            .active(r.active())
+            .address(r.address())
+            .contactEmail(r.contactEmail())
+            .contactTelephone(r.contactTelephone())
+            .invoiceReference(r.invoiceReference())
+            .createdAt(r.createdAt())
+            .build();
+    }
+}
