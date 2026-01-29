@@ -49,11 +49,6 @@ public class ContractValidatingServiceImpl  implements ContractService {
     }
 
     @Override
-    public void createMultipleContracts(List<ContractRequestDto> dtos) {
-        nextContractService.createMultipleContracts(dtos);
-    }
-
-    @Override
     public void updateContract(UUID id, ContractRequestDto request) {
         validateContractDates(request);
         nextContractService.updateContract(id, request);

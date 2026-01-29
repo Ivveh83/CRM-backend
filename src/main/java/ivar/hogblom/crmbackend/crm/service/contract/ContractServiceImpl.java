@@ -96,14 +96,6 @@ public class ContractServiceImpl implements ContractService {
         contractEventService.logContractCreated(savedContract);
     }
 
-    
-    @Override
-    public void createMultipleContracts(List<ContractRequestDto> dtos) {
-        for (ContractRequestDto dto : dtos) {
-         createContract(dto);
-        }
-    }
-
     @Override
     public void updateContract(UUID id, ContractRequestDto dto) {
 
@@ -141,6 +133,7 @@ public class ContractServiceImpl implements ContractService {
         contractEventService.logContractUpdate(oldCopy, updatedContract);
         }
 
+        @Override
     public void updateContractActive(UUID id, ContractActiveUpdateDto dto) {
         Contract contract = contractRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Contract not found"));
@@ -434,43 +427,6 @@ public class ContractServiceImpl implements ContractService {
                 .totalPricePerMonth(dto.totalPricePerMonth())
                 .comment(dto.comment())
                 .build();
-    }
-
-    private void validateContractDates(ContractRequestDto dto) {
-
-        LocalDate contractDate = dto.contractDate();
-        List<LocalDate> renewalDates = dto.renewalDates();
-        LocalDate dueDate = dto.dueDate();
-        Integer lengthMonths = dto.contractLengthMonths();
-
-        // 1. dueDate får inte vara före contractDate
-        if (dueDate.isBefore(contractDate)) {
-            throw new IllegalArgumentException("Due date cannot be before contract date");
-        }
-
-// 2. Alla renewalDates måste ligga inom intervallet [contractDate, dueDate]
-        if (renewalDates != null && !renewalDates.isEmpty()) {
-            for (LocalDate date : renewalDates) {
-                if (date.isBefore(contractDate) || date.isAfter(dueDate)) {
-                    throw new IllegalArgumentException(
-                            "All renewal dates must be between contractDate and dueDate"
-                    );
-                }
-            }
-        }
-
-
-        // 3. contractLengthMonths måste minst motsvara antalet månader mellan contractDate och dueDate
-        long monthsBetween = ChronoUnit.MONTHS.between(
-                contractDate.withDayOfMonth(1),
-                dueDate.withDayOfMonth(1)
-        );
-
-        if (lengthMonths < monthsBetween) {
-            throw new IllegalArgumentException(
-                    "Contract length in months cannot be shorter than the period between contractDate and dueDate"
-            );
-        }
     }
 
 }

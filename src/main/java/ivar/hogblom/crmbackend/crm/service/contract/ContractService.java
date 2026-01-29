@@ -16,7 +16,6 @@ public interface ContractService {
     List<ContractResponseDto> findAll();
     ContractResponseDto findById(UUID id);
     void createContract(ContractRequestDto request);
-    void createMultipleContracts(List<ContractRequestDto> dtos);
     void updateContract(UUID id, ContractRequestDto request);
     void updateContractActive(UUID id, ContractActiveUpdateDto dto);
     void renewContract(UUID id, ContractRenewalDto dto);
